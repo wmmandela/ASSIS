@@ -1,0 +1,148 @@
+{% extends "api/base.html" %}
+
+{% block title %}Dashboard - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Dashboard</span>
+        <h1 style="margin-top:8px;">What needs attention today</h1>
+        <p class="meta" style="margin-bottom:0;">A single view of your semester plan, academic signals, upcoming work, and support recommendations.</p>
+      </div>
+      <div class="actions">
+        <a class="btn btn-secondary" href="{% url 'academic_analytics_ui' %}">Review progress</a>
+        <a class="btn btn-primary" href="{% url 'choose_classes' %}">Update plan</a>
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div class="stat">
+        <strong>{{ enrollments|length }}</strong>
+        <span>Active units</span>
+      </div>
+      <div class="stat">
+        <strong>{{ upcoming_classes|length }}</strong>
+        <span>Scheduled sessions</span>
+      </div>
+      <div class="stat">
+        <strong>{{ assignments|length }}</strong>
+        <span>Assignments tracked</span>
+      </div>
+      <div class="stat">
+        <strong>{{ risk.score }}</strong>
+        <span>Risk score · {{ risk.level|title }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Academic signal</span>
+          <h2 style="margin-top:8px;">Risk and interventions</h2>
+        </div>
+        <span class="pill {{ risk.tone }}">{{ risk.level|title }}</span>
+      </div>
+      <div class="progress {{ risk.tone }}" aria-label="Risk score">
+        <span style="width: {{ risk.score }}%;"></span>
+      </div>
+      <div class="card-list" style="margin-top:14px;">
+        {% for signal in risk.signals %}
+          <div class="card soft">
+            <div class="card-title"><strong>{{ signal }}</strong></div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <a class="btn btn-secondary" href="{% url 'academic_analytics_ui' %}">See details</a>
+        <a class="btn btn-secondary" href="{% url 'ai_assistant_ui' %}">Ask assistant</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Next actions</span>
+          <h2 style="margin-top:8px;">Recommended support</h2>
+        </div>
+      </div>
+      {% if recommendations %}
+        <div class="card-list">
+          {% for item in recommendations|slice:":3" %}
+            <div class="card">
+              <div class="card-title">
+                <strong>{{ item.title }}</strong>
+                <span class="pill">{{ item.category }}</span>
+              </div>
+              <p class="meta" style="margin-bottom:6px;">{{ item.reason }}</p>
+              <p class="meta" style="margin-bottom:0;">Match score {{ item.score }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="message">Recommendations will appear after support catalog data is available.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Schedule</span>
+          <h2 style="margin-top:8px;">Upcoming classes</h2>
+        </div>
+        <a class="btn btn-secondary" href="{% url 'my_courses_ui' %}">Full timetable</a>
+      </div>
+      {% if upcoming_classes %}
+        <div class="card-list">
+          {% for session in upcoming_classes %}
+            <div class="card">
+              <div class="card-title">
+                <strong>{{ session.section.unit.unit_id }} - {{ session.section.unit.title }}</strong>
+                <span class="pill">{{ session.get_day_of_week_display }}</span>
+              </div>
+              <p class="meta" style="margin-bottom:0;">{{ session.start_time }} - {{ session.end_time }} · {{ session.location }} · {{ session.section.lecturer }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="message warning">No sessions yet. Build a semester plan to populate your timetable.</div>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Workload</span>
+          <h2 style="margin-top:8px;">Assignments and activities</h2>
+        </div>
+      </div>
+      <div class="card-list">
+        {% for task in assignments %}
+          <div class="card">
+            <div class="card-title">
+              <strong>{{ task.title }}</strong>
+              <span class="pill">{{ task.due_date }}</span>
+            </div>
+            <p class="meta" style="margin-bottom:0;">{{ task.status }}{% if task.unit %} · {{ task.unit.unit_id }}{% endif %}</p>
+          </div>
+        {% empty %}
+          <div class="message">No assignments are currently tracked.</div>
+        {% endfor %}
+
+        {% for activity in activities|slice:":3" %}
+          <div class="card soft">
+            <div class="card-title">
+              <strong>{{ activity.title }}</strong>
+              <span class="pill">{{ activity.event_date }}</span>
+            </div>
+            <p class="meta" style="margin-bottom:0;">{{ activity.category }}{% if activity.unit %} · {{ activity.unit.unit_id }}{% endif %}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

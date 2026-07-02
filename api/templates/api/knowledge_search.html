@@ -1,0 +1,83 @@
+{% extends "api/base.html" %}
+
+{% block title %}Knowledge Search - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Knowledge search</span>
+        <h1 style="margin-top:8px;">Find policies and support services</h1>
+        <p class="meta" style="margin-bottom:0;">Search advising, tutoring, wellness, financial aid, career services, and registration guidance.</p>
+      </div>
+    </div>
+
+    <form id="knowledge-search-form" onsubmit="return false;" class="actions">
+      <input class="field" name="q" type="text" placeholder="Ask about deferment, tutoring, advising, wellness, or financial aid" style="flex:1; min-width:240px;" />
+      <button type="button" class="btn btn-primary" onclick="window.__runKnowledgeSearch()">Search</button>
+    </form>
+    <div id="knowledge-search-results" style="margin-top:14px;"></div>
+  </section>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Policies</span><h2 style="margin-top:8px;">Knowledge base</h2></div></div>
+      <div class="card-list">
+        {% for document in documents %}
+          <div class="card">
+            <div class="card-title"><strong>{{ document.title }}</strong><span class="pill">{{ document.category }}</span></div>
+            <p class="meta" style="margin-bottom:0;">{{ document.content|truncatewords:24 }}</p>
+          </div>
+        {% empty %}
+          <div class="message warning">No knowledge documents have been added yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Services</span><h2 style="margin-top:8px;">Support catalog</h2></div></div>
+      <div class="card-list">
+        {% for item in support_items %}
+          <div class="card">
+            <div class="card-title"><strong>{{ item.title }}</strong><span class="pill">{{ item.get_item_type_display }}</span></div>
+            <p class="meta" style="margin-bottom:0;">{{ item.description }}</p>
+          </div>
+        {% empty %}
+          <div class="message warning">No support services have been added yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <script>
+    window.__runKnowledgeSearch = async function () {
+      const form = document.getElementById('knowledge-search-form');
+      const q = (form.querySelector('input[name="q"]').value || '').trim();
+      const results = document.getElementById('knowledge-search-results');
+      if (!q) {
+        results.innerHTML = '<div class="message error">Enter a search question.</div>';
+        return;
+      }
+      results.innerHTML = '<div class="message">Searching support knowledge...</div>';
+      try {
+        const res = await fetch(`/api/knowledge-search/?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        const items = data.results || [];
+        results.innerHTML = `
+          <div class="message success">${data.answer_summary || 'Results found.'}</div>
+          <div class="card-list" style="margin-top:12px;">
+            ${items.map((it) => `
+              <div class="card">
+                <div class="card-title"><strong>${it.title || 'Untitled'}</strong><span class="pill">${it.category || it.type || 'Result'}</span></div>
+                <p class="meta">${it.summary || it.description || ''}</p>
+                <span class="pill">Score ${it.score ?? '-'}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (e) {
+        results.innerHTML = '<div class="message error">Knowledge search failed. Try again.</div>';
+      }
+    };
+  </script>
+{% endblock %}

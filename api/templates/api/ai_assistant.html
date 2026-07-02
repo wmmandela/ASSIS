@@ -1,0 +1,62 @@
+{% extends "api/base.html" %}
+
+{% block title %}Assistant - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">AI assistant</span>
+        <h1 style="margin-top:8px;">Ask for student support guidance</h1>
+        <p class="meta" style="margin-bottom:0;">The assistant uses the same support knowledge base as search, with quick answers and sources.</p>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-bottom:12px;">
+      {% for starter in starters %}
+        <button class="btn btn-secondary" type="button" onclick="window.__setAssistantQuestion('{{ starter|escapejs }}')">{{ starter }}</button>
+      {% endfor %}
+    </div>
+
+    <textarea id="assistant-question" placeholder="Ask about advising, classes, academic risk, tutoring, wellness, or financial aid" style="min-height:120px;"></textarea>
+    <div class="actions" style="margin-top:12px;">
+      <button class="btn btn-primary" type="button" onclick="window.__askAssistant()">Ask assistant</button>
+      <a class="btn btn-secondary" href="{% url 'knowledge_search_ui' %}">Open search</a>
+    </div>
+    <div id="assistant-answer" style="margin-top:14px;"></div>
+  </section>
+
+  <script>
+    window.__setAssistantQuestion = function (text) {
+      document.getElementById('assistant-question').value = text;
+    };
+
+    window.__askAssistant = async function () {
+      const question = document.getElementById('assistant-question').value || '';
+      const answer = document.getElementById('assistant-answer');
+      answer.innerHTML = '<div class="message">Thinking...</div>';
+      try {
+        const res = await fetch('/api/chatbot/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        const sources = data.sources || [];
+        answer.innerHTML = `
+          <div class="message success">${data.answer || 'No answer returned.'}</div>
+          <div class="card-list" style="margin-top:12px;">
+            ${sources.map((source) => `
+              <div class="card">
+                <div class="card-title"><strong>${source.title}</strong><span class="pill">${source.category || 'Source'}</span></div>
+                <p class="meta">Score ${source.score ?? '-'}</p>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (e) {
+        answer.innerHTML = '<div class="message error">Assistant failed. Try search or ask again.</div>';
+      }
+    };
+  </script>
+{% endblock %}

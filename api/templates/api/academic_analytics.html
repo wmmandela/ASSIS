@@ -1,0 +1,79 @@
+{% extends "api/base.html" %}
+
+{% block title %}Progress - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Progress</span>
+        <h1 style="margin-top:8px;">Academic health report</h1>
+        <p class="meta" style="margin-bottom:0;">Risk is based on attendance, LMS activity, assignment completion, recent grade, GPA, and wellbeing.</p>
+      </div>
+      <span class="pill {{ risk.tone }}">{{ risk.level|title }} risk</span>
+    </div>
+
+    <div class="grid-3">
+      <div class="stat"><strong>{{ profile.gpa }}</strong><span>GPA</span></div>
+      <div class="stat"><strong>{{ profile.attendance }}%</strong><span>Attendance</span></div>
+      <div class="stat"><strong>{{ profile.wellbeing_score }}%</strong><span>Wellbeing</span></div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Risk score</span>
+          <h2 style="margin-top:8px;">{{ risk.score }}/100</h2>
+        </div>
+      </div>
+      <div class="progress {{ risk.tone }}"><span style="width: {{ risk.score }}%;"></span></div>
+      <div class="card-list" style="margin-top:14px;">
+        {% for signal in risk.signals %}
+          <div class="card soft"><strong>{{ signal }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Interventions</span>
+          <h2 style="margin-top:8px;">Suggested next steps</h2>
+        </div>
+      </div>
+      <div class="card-list">
+        {% for intervention in risk.interventions %}
+          <div class="card"><strong>{{ intervention }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Timetable</span>
+        <h2 style="margin-top:8px;">Current class sessions</h2>
+      </div>
+    </div>
+    {% if sessions %}
+      <table class="table">
+        <thead><tr><th>Unit</th><th>Day</th><th>Time</th><th>Location</th></tr></thead>
+        <tbody>
+          {% for session in sessions %}
+            <tr>
+              <td>{{ session.section.unit.unit_id }} - {{ session.section.unit.title }}</td>
+              <td>{{ session.get_day_of_week_display }}</td>
+              <td>{{ session.start_time }} - {{ session.end_time }}</td>
+              <td>{{ session.location }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="message warning">No timetable entries yet.</div>
+    {% endif %}
+  </section>
+{% endblock %}

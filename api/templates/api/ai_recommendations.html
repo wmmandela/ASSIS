@@ -1,0 +1,41 @@
+{% extends "api/base.html" %}
+
+{% block title %}Recommendations - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">AI recommendations</span>
+        <h1 style="margin-top:8px;">Support matched to your profile</h1>
+        <p class="meta" style="margin-bottom:0;">Recommendations combine your program, interests, academic indicators, and wellbeing signals.</p>
+      </div>
+      <a class="btn btn-secondary" href="{% url 'knowledge_search_ui' %}">Search all support</a>
+    </div>
+
+    {% if recommendations %}
+      <div class="card-list">
+        {% for item in recommendations %}
+          <div class="card">
+            <div class="card-title">
+              <div>
+                <strong>{{ item.title }}</strong>
+                <p class="meta" style="margin:6px 0 0;">{{ item.description }}</p>
+              </div>
+              <span class="pill">{{ item.category }}</span>
+            </div>
+            <p class="meta"><strong>Why:</strong> {{ item.reason }}</p>
+            <div class="actions">
+              <span class="pill">Score {{ item.score }}</span>
+              {% for tag in item.tags|slice:":3" %}
+                <span class="pill">{{ tag }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="message warning">No recommendations are available yet.</div>
+    {% endif %}
+  </section>
+{% endblock %}

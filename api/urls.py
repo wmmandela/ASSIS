@@ -1,0 +1,51 @@
+from django.urls import path
+
+from .views import (
+    academic_risk,
+    api_status,
+    chatbot,
+    choose_classes,
+    knowledge_search,
+    me,
+    recommendations,
+    sentiment,
+    students,
+    timetable,
+    units,
+    unit_recommendations,
+    enroll_unit,
+    # UI views
+    ai_recommendations_ui,
+    academic_analytics_ui,
+    knowledge_search_ui,
+    events_ui,
+    my_profile_ui,
+    my_courses_ui,
+    ai_assistant_ui,
+    settings_ui,
+)
+
+urlpatterns = [
+    path("status/", api_status, name="api-status"),
+    path("students/", students, name="students"),
+    path("recommendations/", recommendations, name="recommendations"),
+    path("risk/", academic_risk, name="academic-risk"),
+    path("knowledge-search/", knowledge_search, name="knowledge-search"),
+    path("sentiment/", sentiment, name="sentiment"),
+    path("chatbot/", chatbot, name="chatbot"),
+    path("choose-classes/", choose_classes, name="choose_classes"),
+    # UI pages (server-rendered shells calling API endpoints)
+    path("ai-recommendations/", ai_recommendations_ui, name="ai_recommendations_ui"),
+    path("academic-analytics/", academic_analytics_ui, name="academic_analytics_ui"),
+    path("knowledge-search-ui/", knowledge_search_ui, name="knowledge_search_ui"),
+    path("events-ui/", events_ui, name="events_ui"),
+    path("my-profile/", my_profile_ui, name="my_profile_ui"),
+    path("my-courses/", my_courses_ui, name="my_courses_ui"),
+    path("ai-assistant-ui/", ai_assistant_ui, name="ai_assistant_ui"),
+    path("settings-ui/", settings_ui, name="settings_ui"),
+    path("me/", me, name="api-me"),
+    path("timetable/", timetable, name="api-timetable"),
+    path("units/", units, name="api-units"),
+    path("units/recommendations/", unit_recommendations, name="api-unit-recommendations"),
+    path("units/enroll/", enroll_unit, name="api-unit-enroll"),
+]

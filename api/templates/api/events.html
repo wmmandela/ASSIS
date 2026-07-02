@@ -1,0 +1,45 @@
+{% extends "api/base.html" %}
+
+{% block title %}Events - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Events</span>
+        <h1 style="margin-top:8px;">Campus activity and support opportunities</h1>
+        <p class="meta" style="margin-bottom:0;">Use this view to connect coursework with campus support and development events.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Your calendar</span><h2 style="margin-top:8px;">Tracked activities</h2></div></div>
+      <div class="card-list">
+        {% for activity in activities %}
+          <div class="card">
+            <div class="card-title"><strong>{{ activity.title }}</strong><span class="pill">{{ activity.event_date }}</span></div>
+            <p class="meta" style="margin-bottom:0;">{{ activity.category }}{% if activity.unit %} · {{ activity.unit.unit_id }}{% endif %}</p>
+          </div>
+        {% empty %}
+          <div class="message">No personal activities are currently tracked.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Recommended</span><h2 style="margin-top:8px;">Support events</h2></div></div>
+      <div class="card-list">
+        {% for item in support_events %}
+          <div class="card">
+            <div class="card-title"><strong>{{ item.title }}</strong><span class="pill">{{ item.get_item_type_display }}</span></div>
+            <p class="meta" style="margin-bottom:0;">{{ item.description }}</p>
+          </div>
+        {% empty %}
+          <div class="message warning">No support events are currently published.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

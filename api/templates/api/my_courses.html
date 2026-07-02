@@ -1,0 +1,46 @@
+{% extends "api/base.html" %}
+
+{% block title %}Courses - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Courses</span>
+        <h1 style="margin-top:8px;">Enrollment and timetable</h1>
+        <p class="meta" style="margin-bottom:0;">A practical view of your current units, instructors, and class meetings.</p>
+      </div>
+      <a class="btn btn-primary" href="{% url 'choose_classes' %}">Adjust plan</a>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Enrollment</span><h2 style="margin-top:8px;">Current units</h2></div></div>
+      <div class="card-list">
+        {% for e in enrollments %}
+          <div class="card">
+            <div class="card-title"><strong>{{ e.unit.unit_id }} - {{ e.unit.title }}</strong>{% if e.section %}<span class="pill">Section {{ e.section.section_code }}</span>{% endif %}</div>
+            <p class="meta" style="margin-bottom:0;">{% if e.section %}{{ e.section.lecturer }}{% else %}Section pending{% endif %}</p>
+          </div>
+        {% empty %}
+          <div class="message warning">No enrolled units yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Timetable</span><h2 style="margin-top:8px;">Class meetings</h2></div></div>
+      <div class="card-list">
+        {% for session in sessions %}
+          <div class="card">
+            <div class="card-title"><strong>{{ session.section.unit.unit_id }}</strong><span class="pill">{{ session.get_day_of_week_display }}</span></div>
+            <p class="meta" style="margin-bottom:0;">{{ session.start_time }} - {{ session.end_time }} · {{ session.location }}</p>
+          </div>
+        {% empty %}
+          <div class="message warning">Your timetable is empty.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

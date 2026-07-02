@@ -1,0 +1,33 @@
+{% extends "api/base.html" %}
+
+{% block title %}Settings - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Settings</span>
+        <h1 style="margin-top:8px;">Student workspace preferences</h1>
+        <p class="meta" style="margin-bottom:0;">These controls are presented as the future settings surface for notification and support routing preferences.</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><strong>Advisor alerts</strong><span class="pill success">On</span></div>
+        <p class="meta" style="margin-bottom:0;">Notify support staff when academic risk becomes high.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><strong>Weekly digest</strong><span class="pill success">On</span></div>
+        <p class="meta" style="margin-bottom:0;">Summarize upcoming classes, workload, and recommended actions.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><strong>Knowledge sources</strong><span class="pill">Campus catalog</span></div>
+        <p class="meta" style="margin-bottom:0;">Search uses support services and internal knowledge documents.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><strong>Planning rule</strong><span class="pill">5 units max</span></div>
+        <p class="meta" style="margin-bottom:0;">Semester planning enforces unit capacity, prerequisites, and timetable conflicts.</p>
+      </div>
+    </div>
+  </section>
+{% endblock %}

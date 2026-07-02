@@ -1,0 +1,147 @@
+{% extends "api/base.html" %}
+
+{% block title %}Semester Planner - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Semester planner</span>
+        <h1 style="margin-top:8px;">Build a balanced class plan</h1>
+        <p class="meta" style="margin-bottom:0;">Select up to five units. ASSIS checks prerequisites, avoids timetable conflicts, and picks the best section for each unit.</p>
+      </div>
+      <a class="btn btn-secondary" href="{% url 'my_courses_ui' %}">View timetable</a>
+    </div>
+
+    <div class="grid-3">
+      <div class="stat">
+        <strong>{{ enrollments|length }}/5</strong>
+        <span>Current load</span>
+      </div>
+      <div class="stat">
+        <strong>{{ recommended_units|length }}</strong>
+        <span>Recommended units</span>
+      </div>
+      <div class="stat">
+        <strong>{{ profile.current_semester }}</strong>
+        <span>Planning semester</span>
+      </div>
+    </div>
+  </section>
+
+  <form method="post" class="section">
+    {% csrf_token %}
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Recommended plan</span>
+        <h2 style="margin-top:8px;">Best fit for your profile</h2>
+        <p class="meta" style="margin-bottom:0;">These are ranked by program fit, interests, prerequisites, and schedule compatibility.</p>
+      </div>
+      <button class="btn btn-primary" type="submit">Enroll selected</button>
+    </div>
+
+    {% if recommended_units %}
+      <div class="card-list">
+        {% for item in recommended_units %}
+          <label class="card" for="recommended-{{ item.unit.unit_id }}">
+            <div class="card-title">
+              <div>
+                <strong>{{ item.unit.unit_id }} - {{ item.unit.title }}</strong>
+                <p class="meta" style="margin:6px 0 0;">{{ item.unit.description }}</p>
+              </div>
+              <span class="pill">Score {{ item.score }}</span>
+              {% if profile.year == 1 and item.unit.semester == profile.current_semester and item.unit.category == 'Core' %}
+                <span class="pill success">First-year friendly</span>
+              {% endif %}
+            </div>
+            <div class="actions">
+              <input
+                id="recommended-{{ item.unit.unit_id }}"
+                type="checkbox"
+                name="unit_ids[]"
+                value="{{ item.unit.unit_id }}"
+                {% if item.missing_prereqs %}disabled{% endif %}
+              />
+              <span class="pill">{{ item.unit.category }}</span>
+              <span class="pill">{{ item.unit.credits }} credits</span>
+              {% if item.missing_prereqs %}
+                <span class="pill danger">Needs {{ item.missing_prereqs|join:", " }}</span>
+              {% else %}
+                <span class="pill success">Prerequisites met</span>
+              {% endif %}
+            </div>
+          </label>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="message warning">No recommendations are available yet for this semester.</div>
+    {% endif %}
+  </form>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Catalog</span>
+          <h2 style="margin-top:8px;">Available units</h2>
+        </div>
+      </div>
+
+      {% if available_units %}
+        <div class="card-list">
+          {% for u in available_units %}
+            {% if u.unit_id not in enrolled_unit_ids %}
+              <form method="post" class="card">
+                {% csrf_token %}
+                <div class="card-title">
+                  <div>
+                    <strong>{{ u.unit_id }} - {{ u.title }}</strong>
+                    <p class="meta" style="margin:6px 0 0;">{{ u.description }}</p>
+                  </div>
+                  <span class="pill">{{ u.category }}</span>
+                </div>
+                <p class="meta">Course: {{ u.course.title }} · {{ u.credits }} credits</p>
+                <input type="hidden" name="unit_ids[]" value="{{ u.unit_id }}" />
+                <button class="btn btn-secondary" type="submit">Add this unit</button>
+              </form>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="message warning">No units are available for your current semester.</div>
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Your plan</span>
+          <h2 style="margin-top:8px;">Currently enrolled</h2>
+        </div>
+      </div>
+
+      {% if enrollments %}
+        <div class="card-list">
+          {% for enrollment in enrollments %}
+            <div class="card">
+              <div class="card-title">
+                <strong>{{ enrollment.unit.unit_id }} - {{ enrollment.unit.title }}</strong>
+                {% if enrollment.section %}<span class="pill">Section {{ enrollment.section.section_code }}</span>{% endif %}
+              </div>
+              <p class="meta" style="margin-bottom:0;">
+                {% if enrollment.section %}{{ enrollment.section.lecturer }} · {{ enrollment.section.semester }} semester{% else %}Section pending{% endif %}
+              </p>
+              <form method="post" style="margin-top:10px;">
+                {% csrf_token %}
+                <input type="hidden" name="drop_unit_id" value="{{ enrollment.unit.unit_id }}" />
+                <button class="btn btn-secondary" type="submit">Drop unit</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="message">You have no enrolled units yet. Start with the recommended plan.</div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

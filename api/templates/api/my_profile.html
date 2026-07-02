@@ -1,0 +1,43 @@
+{% extends "api/base.html" %}
+
+{% block title %}Profile - ASSIS{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Profile</span>
+        <h1 style="margin-top:8px;">{{ profile.name }}</h1>
+        <p class="meta" style="margin-bottom:0;">{{ profile.program }} · Student ID {{ profile.student_id }}</p>
+      </div>
+      <span class="pill {{ risk.tone }}">{{ risk.level|title }} risk</span>
+    </div>
+
+    <div class="grid-3">
+      <div class="stat"><strong>{{ profile.year }}</strong><span>Year</span></div>
+      <div class="stat"><strong>{{ profile.current_semester }}</strong><span>Semester</span></div>
+      <div class="stat"><strong>{{ profile.completed_units }}</strong><span>Completed units</span></div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Performance</span><h2 style="margin-top:8px;">Academic indicators</h2></div></div>
+      <div class="card-list">
+        <div class="card"><div class="card-title"><strong>GPA</strong><span class="pill">{{ profile.gpa }}</span></div></div>
+        <div class="card"><div class="card-title"><strong>Attendance</strong><span class="pill">{{ profile.attendance }}%</span></div></div>
+        <div class="card"><div class="card-title"><strong>LMS activity</strong><span class="pill">{{ profile.lms_activity }}%</span></div></div>
+        <div class="card"><div class="card-title"><strong>Assignments submitted</strong><span class="pill">{{ profile.assignments_submitted }}%</span></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div><span class="eyebrow">Support</span><h2 style="margin-top:8px;">Current guidance</h2></div></div>
+      <div class="card-list">
+        {% for intervention in risk.interventions %}
+          <div class="card"><strong>{{ intervention }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
