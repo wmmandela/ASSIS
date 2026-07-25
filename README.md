@@ -62,3 +62,22 @@ The code is structured so production models can replace the local fallbacks:
 
 ## Requirements
 - `requirements.txt` is included.
+
+## Universal Design (UD) Implementation
+
+The frontend (`src/main.jsx`, `src/styles.css`, `index.html`) has been updated to follow all seven Universal Design principles:
+
+| # | Principle | Implementation |
+|---|-----------|---------------|
+| 1 | **Equitable Use** | Skip-navigation link in `index.html` so keyboard-only and screen-reader users can jump directly to main content |
+| 2 | **Flexibility in Use** | `prefers-reduced-motion` CSS media query disables animations; all features work with keyboard, mouse, or touch |
+| 3 | **Simple & Intuitive Use** | Explicit `<label>` elements for all form inputs; plain-language headings and button labels; consistent tab-panel layout |
+| 4 | **Perceptible Information** | ARIA landmark roles (`banner`, `main`, `navigation`, `contentinfo`); `role="tablist"` / `role="tab"` / `role="tabpanel"` for the sidebar nav; `role="progressbar"` with `aria-valuenow/min/max/valuetext` on progress bars; `<dl>/<dt>/<dd>` for stat cards; hidden live region for dynamic announcements |
+| 5 | **Tolerance for Error** | Error notices use `role="alert"` (assertive); status notices use `role="status"` (polite); loading state announced to screen readers; no destructive defaults |
+| 6 | **Low Physical Effort** | Arrow-key navigation between tabs; Enter key submits search/chatbot inputs; minimum 44 × 44 px touch targets enforced in CSS; `:focus-visible` ring on all interactive elements |
+| 7 | **Size & Space for Approach and Use** | Responsive CSS grid (single-column on mobile, multi-column on desktop); minimum touch targets via CSS; adequate spacing throughout |
+
+### Key files changed
+- `index.html` — `lang="en"`, `<meta name="description">`, skip link
+- `src/styles.css` — skip-link styles, `.sr-only` utility, focus ring, `prefers-reduced-motion`, `forced-colors` support, 44px touch targets
+- `src/main.jsx` — landmark roles, ARIA attributes, keyboard navigation, live region, semantic HTML (`<ul>/<li>`, `<dl>/<dt>/<dd>`, `<article>`, `<section>`, `<header>`, `<footer>`, `<nav>`, `<main>`)
