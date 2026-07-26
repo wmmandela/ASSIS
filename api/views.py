@@ -24,7 +24,10 @@ from .models import (
     SupportItem,
     Unit,
     UnitSection,
+    InterventionRecommendation,
+    StudentFeedback,
 )
+from django.db.models import Avg, Count, Max, Q
 from .ai.sample_data import KNOWLEDGE_DOCUMENTS, RESOURCES
 from .seed_data import (
     COURSES as CURRICULUM_COURSES,
@@ -882,3 +885,51 @@ def sentiment(request):
 def chatbot(request):
     question = request.data.get("question", "")
     return Response(chatbot_response(question=question))
+@login_required(login_url="/login/login/")
+def admin_dashboard(request):
+    students = StudentProfile.objects.all()
+    total_students = students.count()
+
+    avg_gpa = students.aggregate(avg=Avg("gpa"))["avg"] or 0
+    avg_attendance = students.aggregate(avg=Avg("attendance"))["avg"] or 0
+    avg_wellbeing = students.aggregate(avg=Avg("wellbeing_score"))["avg"] or 0
+
+    latest_risk_ids = (
+        InterventionRecommendation.objects.values("student_id")
+        .annotate(latest_id=Max("id"))
+        .values_list("latest_id", flat=True)
+    )
+    latest_risks = InterventionRecommendation.objects.filter(
+        id__in=latest_risk_ids
+    ).select_related("student")
+
+    avg_risk_score = latest_risks.aggregate(avg=Avg("risk_score"))["avg"] or 0
+    at_risk_students = latest_risks.filter(risk_level__iexact="high").order_by("-risk_score")
+
+    unit_enrollment = (
+        Unit.objects.filter(active=True)
+        .annotate(
+            enrolled_count=Count(
+                "enrollments", filter=Q(enrollments__status="enrolled")
+            )
+        )
+        .order_by("-enrolled_count")[:8]
+    )
+
+    recent_feedback = StudentFeedback.objects.select_related("student").order_by("-created_at")[:5]
+    pending_assignments = Assignment.objects.filter(status__iexact="Pending").count()
+
+    context = {
+        "total_students": total_students,
+        "avg_gpa": round(avg_gpa, 2),
+        "avg_attendance": round(avg_attendance, 1),
+        "avg_wellbeing": round(avg_wellbeing, 1),
+        "avg_risk_score": round(avg_risk_score, 1),
+        "at_risk_students": at_risk_students,
+        "unit_enrollment": unit_enrollment,
+        "recent_feedback": recent_feedback,
+        "pending_assignments": pending_assignments,
+        "total_units": Unit.objects.filter(active=True).count(),
+        "total_courses": Course.objects.filter(active=True).count(),
+    }
+    return render(request, "api/admin_dashboard.html", context)

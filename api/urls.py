@@ -23,6 +23,7 @@ from .views import (
     my_courses_ui,
     ai_assistant_ui,
     settings_ui,
+    admin_dashboard,
 )
 
 urlpatterns = [
@@ -48,4 +49,5 @@ urlpatterns = [
     path("units/", units, name="api-units"),
     path("units/recommendations/", unit_recommendations, name="api-unit-recommendations"),
     path("units/enroll/", enroll_unit, name="api-unit-enroll"),
+    path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
 ]

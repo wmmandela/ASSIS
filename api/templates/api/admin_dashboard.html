@@ -1,0 +1,150 @@
+{% extends "api/base.html" %}
+
+{% block title %}Admin Dashboard - ASSIS{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Admin</span>
+      <h1 style="margin-top: 8px">Institution overview</h1>
+      <p class="meta" style="margin-bottom: 0">
+        Aggregate view of all students, risk signals, and workload across ASSIS.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid-4">
+    <div class="stat">
+      <strong>{{ total_students }}</strong>
+      <span>Total students</span>
+    </div>
+    <div class="stat">
+      <strong>{{ avg_gpa }}</strong>
+      <span>Average GPA</span>
+    </div>
+    <div class="stat">
+      <strong>{{ avg_attendance }}%</strong>
+      <span>Average attendance</span>
+    </div>
+    <div class="stat">
+      <strong>{{ avg_risk_score }}</strong>
+      <span>Average risk score</span>
+    </div>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Academic risk</span>
+        <h2 style="margin-top: 8px">Students flagged high-risk</h2>
+      </div>
+      <span class="pill danger">{{ at_risk_students|length }}</span>
+    </div>
+    {% if at_risk_students %}
+    <div class="card-list">
+      {% for record in at_risk_students %}
+      <div class="card soft">
+        <div class="card-title">
+          <strong>{{ record.student.name }}</strong>
+          <span class="pill">{{ record.risk_level|title }}</span>
+        </div>
+        <p class="meta" style="margin-bottom: 0">
+          Risk score {{ record.risk_score }} · {{ record.student.student_id }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="message">No students are currently flagged as high-risk.</div>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Workload</span>
+        <h2 style="margin-top: 8px">Institution snapshot</h2>
+      </div>
+    </div>
+    <div class="card-list">
+      <div class="card">
+        <div class="card-title">
+          <strong>{{ total_courses }}</strong> <span class="pill">Courses</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <strong>{{ total_units }}</strong>
+          <span class="pill">Active units</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <strong>{{ pending_assignments }}</strong>
+          <span class="pill">Pending assignments</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <strong>{{ avg_wellbeing }}</strong>
+          <span class="pill">Avg wellbeing score</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Enrollment</span>
+        <h2 style="margin-top: 8px">Most enrolled units</h2>
+      </div>
+    </div>
+    {% if unit_enrollment %}
+    <div class="card-list">
+      {% for unit in unit_enrollment %}
+      <div class="card">
+        <div class="card-title">
+          <strong>{{ unit.unit_id }} - {{ unit.title }}</strong>
+          <span class="pill">{{ unit.enrolled_count }} enrolled</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="message">No enrollment data available.</div>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Feedback</span>
+        <h2 style="margin-top: 8px">Recent student feedback</h2>
+      </div>
+    </div>
+    {% if recent_feedback %}
+    <div class="card-list">
+      {% for item in recent_feedback %}
+      <div class="card soft">
+        <div class="card-title">
+          <strong>{{ item.student.name|default:"Anonymous" }}</strong>
+          <span class="pill">{{ item.sentiment_label|default:"Unrated" }}</span>
+        </div>
+        <p class="meta" style="margin-bottom: 0">
+          {{ item.text|truncatewords:20 }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="message">No feedback submitted yet.</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
