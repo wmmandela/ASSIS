@@ -27,6 +27,8 @@ import {
   Trash2,
   UserCheck,
   Users,
+  Volume2,
+  VolumeX,
   X,
   XCircle,
 } from "lucide-react";
@@ -132,6 +134,59 @@ function App() {
   const [enrollMessage, setEnrollMessage]             = useState("");
   const [highContrast, setHighContrast]               = useState(false);
   const [fontSize, setFontSize]                       = useState(100);
+  const [isSpeaking, setIsSpeaking]                   = useState(false);
+
+  function generateSmartNarrative() {
+    if (activeTab === "dashboard") {
+      return `Welcome back, ${profile?.name || "student"}. You are currently enrolled in ${enrolledUnitsList.length} units for the ${profile?.current_semester || "current"} semester. Your grade point average is ${profile?.gpa || "3.5"} with an attendance rate of ${profile?.attendance || 90} percent. Your overall academic risk level is ${risk?.level || "Good"}.`;
+    }
+    if (activeTab === "timetable") {
+      return `Timetable Schedule Overview. You have ${timetable.length} class sessions scheduled across your enrolled units. Enrolled classes include ${enrolledUnitsList.map((u) => u.unit?.unit_id).filter(Boolean).join(", ") || "none yet"}.`;
+    }
+    if (activeTab === "planner") {
+      return `Semester Planner overview for ${profile?.program || "your major"} Year ${profile?.year || 1}. There are ${units.length} course units available for selection. You currently have ${enrolledUnitsList.length} units in your active plan out of maximum 5.`;
+    }
+    if (activeTab === "recommendations") {
+      const topRecs = (recommendations || []).map((r) => r.unit?.unit_id || r.title).slice(0, 3).join(", ");
+      return `Events and Support Overview. Recommended activities for your academic year include ${topRecs || "Freshman Orientation and Peer Mentorship Clinics"}.`;
+    }
+    if (activeTab === "chat") {
+      return "AI Academic Assistant. You can ask any question regarding university policies, adding or dropping units, financial aid, or graduation requirements.";
+    }
+    if (activeTab === "admin") {
+      return "Administrator Portal overview. Currently managing student profiles, risk alerts, assignment grading, and campus event publishing.";
+    }
+    return `You are currently viewing the ${tabs.find((t) => t.id === activeTab)?.label || "ASSIS"} section.`;
+  }
+
+  function toggleSpeech() {
+    if (!("speechSynthesis" in window)) {
+      announce("Text to speech is not supported in this browser.");
+      return;
+    }
+    if (window.speechSynthesis.speaking || isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      announce("Stopped reading overview.");
+      return;
+    }
+    const narrative = generateSmartNarrative();
+    const utterance = new SpeechSynthesisUtterance(narrative);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    setIsSpeaking(true);
+    announce("Reading overview aloud.");
+    window.speechSynthesis.speak(utterance);
+  }
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.speechSynthesis && window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  }, [activeTab]);
   const [plannerPage, setPlannerPage]                 = useState(0);
 
   /* Student Preferences */
@@ -167,6 +222,8 @@ function App() {
   const [newEventDate, setNewEventDate]               = useState("");
   const [newEventUnit, setNewEventUnit]               = useState("");
   const [newEventStudent, setNewEventStudent]         = useState("all");
+  const [eventCategoryFilter, setEventCategoryFilter] = useState("all");
+  const [eventSearchQuery, setEventSearchQuery]       = useState("");
 
   const [gradeScoreInput, setGradeScoreInput]         = useState({});
 
@@ -1097,11 +1154,11 @@ function App() {
           </nav>
         </div>
 
-        {/* Sidebar Footer / User Profile summary */}
-        {!sidebarCollapsed && profile && (
-          <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+        {/* Sidebar Footer / User Profile summary & Sign Out */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
+          {!sidebarCollapsed && profile && (
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs border border-sky-300">
+              <div className="h-8 w-8 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs border border-sky-300 shrink-0">
                 {profile.name ? profile.name.charAt(0).toUpperCase() : "S"}
               </div>
               <div className="overflow-hidden text-left">
@@ -1109,8 +1166,20 @@ function App() {
                 <div className="text-[11px] text-slate-500 truncate">{isAdmin ? "Administrator" : (profile.program || "Student")}</div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer shadow-xs ${
+              sidebarCollapsed ? "justify-center px-0" : ""
+            }`}
+            title="Sign Out of ASSIS"
+          >
+            <LogOut size={15} />
+            {!sidebarCollapsed && <span>Sign Out</span>}
+          </button>
+        </div>
       </aside>
 
       {/* ============================================================
@@ -1151,6 +1220,20 @@ function App() {
             {/* Accessibility toggles */}
             <button
               type="button"
+              onClick={toggleSpeech}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors cursor-pointer ${
+                isSpeaking
+                  ? "bg-amber-100 border-amber-300 text-amber-900 animate-pulse"
+                  : "bg-sky-50 border-sky-200 text-sky-700 hover:bg-sky-100"
+              }`}
+              title={isSpeaking ? "Stop Reading Overview" : "Listen to Overview"}
+            >
+              {isSpeaking ? <VolumeX size={13} /> : <Volume2 size={13} />}
+              <span>{isSpeaking ? "Stop Reading" : "Listen Overview"}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setHighContrast(!highContrast)}
               className="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
             >
@@ -1175,16 +1258,6 @@ function App() {
                 A-
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors shrink-0 cursor-pointer shadow-xs"
-              title="Sign Out of ASSIS"
-            >
-              <LogOut size={13} />
-              Sign Out
-            </button>
           </div>
         </header>
 
@@ -2688,25 +2761,86 @@ function App() {
                     </form>
                   </div>
 
-                  {/* Events List */}
+                  {/* Creative Compact Events List Component */}
                   <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-                    <h3 className="font-extrabold text-slate-900 text-base">Published Class & Campus Events</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      <div>
+                        <h3 className="font-extrabold text-slate-900 text-base">Published Class & Campus Events</h3>
+                        <p className="text-xs text-slate-500">
+                          Total published events: {adminData?.events?.length || 0}
+                        </p>
+                      </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {adminData?.events?.map((ev) => (
-                        <div key={ev.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-1.5 text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-900 text-sm">{ev.title}</span>
-                            <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-bold text-[10px]">
-                              {ev.category}
-                            </span>
-                          </div>
-                          <div className="text-slate-600 flex items-center justify-between text-[11px]">
-                            <span>Date: <strong>{ev.event_date}</strong></span>
-                            <span>Audience: <strong>{ev.student_name}</strong></span>
-                          </div>
-                        </div>
+                      {/* Quick Search */}
+                      <div className="relative w-full sm:w-64">
+                        <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                        <input
+                          type="text"
+                          value={eventSearchQuery}
+                          onChange={(e) => setEventSearchQuery(e.target.value)}
+                          placeholder="Filter events..."
+                          className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Category Filter Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                      {["all", "School Event", "Class Event", "Academic", "Support"].map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setEventCategoryFilter(cat)}
+                          className={`px-3 py-1 rounded-full font-bold transition-all cursor-pointer ${
+                            eventCategoryFilter === cat
+                              ? "bg-slate-900 text-white shadow-xs"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                        >
+                          {cat === "all" ? "All Categories" : cat}
+                        </button>
                       ))}
+                    </div>
+
+                    {/* Compact Fixed-Height Scroll Grid */}
+                    <div className="max-h-72 overflow-y-auto pr-1">
+                      {(() => {
+                        const filtered = (adminData?.events || []).filter((ev) => {
+                          const matchesCat = eventCategoryFilter === "all" || ev.category === eventCategoryFilter;
+                          const matchesSearch =
+                            !eventSearchQuery ||
+                            ev.title.toLowerCase().includes(eventSearchQuery.toLowerCase()) ||
+                            (ev.student_name && ev.student_name.toLowerCase().includes(eventSearchQuery.toLowerCase()));
+                          return matchesCat && matchesSearch;
+                        });
+
+                        if (!filtered.length) {
+                          return (
+                            <div className="p-6 text-center text-slate-400 text-xs font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                              No events found matching your filter.
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {filtered.map((ev) => (
+                              <div key={ev.id} className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-1.5 text-xs hover:border-sky-300 transition-colors">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-bold text-slate-900 text-sm truncate">{ev.title}</span>
+                                  <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-bold text-[10px] shrink-0">
+                                    {ev.category}
+                                  </span>
+                                </div>
+                                <div className="text-slate-600 flex items-center justify-between text-[11px] pt-1 border-t border-slate-200/50">
+                                  <span>Date: <strong className="text-slate-800">{ev.event_date}</strong></span>
+                                  <span>Audience: <strong className="text-slate-800">{ev.student_name}</strong></span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

@@ -25,3 +25,4 @@ npm-debug.log*
 # Documentation files not pushed to remote
 HCI_Documentation.docx
 generate_docx.py
+generate_docx_clean.py

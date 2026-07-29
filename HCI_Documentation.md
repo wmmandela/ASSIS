@@ -1,188 +1,129 @@
-# ASSIS: Human-Computer Interaction (HCI) & Universal Design Documentation
+# ASSIS Human Computer Interaction and AI System Documentation
 
----
+AI Powered Student Support Information System Documentation
 
 ## 1. System Overview: What ASSIS Does
 
-**ASSIS** (*AI-Powered Student Support Information System*) is a modern, web-based intelligent academic ecosystem engineered to empower university students and administrative staff. Rather than acting as a standard static portal, ASSIS integrates a predictive AI layer with user-centered interaction design to deliver proactive, personalized support throughout a student's academic journey.
+ASSIS is a web application designed to help university students manage their academic work and assist university staff in monitoring student progress. It combines a Django backend with a React user interface to provide simple navigation, timetable scheduling, degree planning, and academic recommendations.
 
-```
-                  ┌─────────────────────────────────────────┐
-                  │          ASSIS Frontend SPA             │
-                  │   (React 19 + Tailwind CSS + Lucide)    │
-                  └────────────────────┬────────────────────┘
-                                       │ REST / Session Auth
-                                       ▼
-                  ┌─────────────────────────────────────────┐
-                  │         Django REST Backend API         │
-                  └────────────────────┬────────────────────┘
-                                       │
-            ┌──────────────────────────┼──────────────────────────┐
-            ▼                          ▼                          ▼
- ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
- │ AI Recommendation   │    ┌ Academic Risk Engine│    │ Intelligent Search  │
- │ (Program & Level)   │    │ (Early Interventions│    │ (Single-Answer QA)  │
- └─────────────────────┘    └─────────────────────┘    └─────────────────────┘
-```
+Main capabilities of ASSIS:
+* **Student Dashboard:** Displays student details, enrolled units, overall grade point average, and attendance status.
+* **Semester Planner:** Allows students to select core and elective courses based on their degree program.
+* **Timetable Engine:** Displays class times and automatically detects time overlaps to prevent schedule conflicts.
+* **Knowledge Base Search:** Returns a single direct answer card when students search university policy documents.
+* **AI Advising Assistant:** Provides direct answers to student academic questions.
+* **Smart Text to Speech Reader:** Provides a Listen Overview button in the navigation header that reads a narrative summary of the active screen aloud.
+* **Staff Portal:** Allows staff to grade assignments, post campus events, and review student academic risk.
 
-### Core System Features:
-1. **Personalized Course & Degree Tracking**: Dynamically labels and filters academic content based on the student's specific degree program (*Data Science*, *Cybersecurity*, *AI & Robotics*, *Information Systems*, *Software Engineering*).
-2. **Student-Independent Activity Recommendations**: Generates tailored optional school activities, seminars, and tutoring labs scored specifically by academic level (Years 1–4) and progress status (GPA, attendance, risk indicators).
-3. **Interactive Timetable & Conflict Resolution Engine**: Real-time schedule layout with automated collision detection to prevent time overlap between enrolled class sections.
-4. **Focused Single-Answer Knowledge Search**: Vector-based semantic search engine returning a single, authoritative policy answer for queried campus questions.
-5. **Intelligent AI Assistant**: Natural language academic advising agent utilizing institutional knowledge retrieval.
-6. **Administrator Portal**: Real-time analytics, risk prediction monitoring, assignment grading, and support event publishing.
+## 2. Artificial Intelligence Features
 
----
+ASSIS uses artificial intelligence to personalize student guidance and simplify administrative tasks.
 
-## 2. HCI Paradigms Applied
+### Student Activity Recommendation Engine
+The recommendation engine suggests optional academic activities tailored to student academic year and standing:
+* **Year 1 Freshman:** Orientation workshops, mentorship programs, and basic logic labs.
+* **Year 2 Sophomore:** Career panels, intermediate skills coaching, and undergraduate research.
+* **Year 3 Junior:** Internship preparation clinics and elective specialization advising.
+* **Year 4 Senior:** Capstone showcases and graduate school application seminars.
+* **High Academic Performance:** Students with high grade point averages receive honors research opportunities.
+* **Academic Recovery:** Students needing support receive academic recovery and tutoring clinics.
 
-HCI Paradigms define the fundamental models of interaction between human mental models and system capabilities. ASSIS incorporates four primary paradigms:
+### Academic Risk Score Model
+ASSIS monitors student engagement metrics to identify students who require academic support. The risk score calculation evaluates five factors:
+* **1. Attendance Rate:** Attendance percentage weighted at 30 percent.
+* **2. Assignment Submissions:** Assignment completion rate weighted at 25 percent.
+* **3. Grade Point Average:** Grade point average weighted at 20 percent.
+* **4. Learning Platform Activity:** System activity index weighted at 15 percent.
+* **5. Student Wellbeing Index:** Student wellness indicator weighted at 10 percent.
 
-### A. Direct Manipulation Paradigm (Shneiderman, 1983)
-- **Visual Representation**: Objects of interest (course cards, timetable blocks, unit sections, preference chips) are visually displayed with immediate visual feedback.
-- **Incremental Actions**: Students can enroll, drop, filter, or switch view states with single-action controls that yield immediate, reversible results.
+### Single Answer Knowledge Search
+The knowledge search system processes policy text to return a single focused answer card. This avoids presenting a long list of confusing search results.
 
-### B. Conversational UI & Intelligent Agent Paradigm
-- **Natural Language Interaction**: The embedded AI Assistant acts as a conversational partner, processing free-form student inquiries regarding academic policies, stress management, or degree requirements.
-- **Context-Aware Responses**: Synthesizes structured data into plain-language guidance matching human conversation norms.
+### Smart Text to Speech Narrative Reader
+ASSIS includes a non automatic speech synthesis reader triggered by a Listen Overview button strategically placed in the top navigation header. Instead of reading raw buttons or table codes, the system generates a natural language narrative summarizing current enrollments, academic standing, timetable schedules, and recommended activities. Users can start or stop speech at any time using the header button.
 
-### C. Proactive & Ubiquitous Computing Paradigm
-- **Intervention Without Interruption**: The Academic Risk Engine silently monitors attendance, grades, and engagement metrics, surfacing proactive intervention cards before academic crisis occurs.
+### AI Assistant and Sentiment Analysis
+* **AI Advising Assistant:** Answers student queries about university policies and academic procedures.
+* **Sentiment Analysis:** Analyzes student feedback to identify recurring academic concerns for staff review.
 
-### D. Visual Information Seeking Paradigm (*Shneiderman's Information Seeking Mantra*)
-- **"Overview first, zoom and filter, then details-on-demand"**:
-  1. *Overview*: Student Dashboard summary (GPA, Enrolled Credits, Quote Banner).
-  2. *Zoom & Filter*: Filtering course catalogs by degree program, level, and schedule preferences.
-  3. *Details-on-Demand*: Expanding detailed unit descriptions, syllabus tags, and single-answer search cards.
+## 3. Human Computer Interaction Paradigms Applied
 
----
+From the fundamental human computer interaction paradigms, ASSIS incorporates the following specific paradigms:
 
-## 3. HCI Design Principles Applied (Nielsen's 10 Usability Heuristics)
+* **1. Direct Manipulation:** Users interact directly with visible objects through actions such as clicking buttons to enroll in sections, dropping units, and selecting degree plans with instant visual feedback.
+* **2. Graphical Displays:** Uses visual output such as interactive timetable grids, progress bars, grade breakdown charts, and formatted status cards instead of plain text terminal output.
+* **3. The World Wide Web:** Provides universal access to academic information, timetables, and enrollment services through standard web technologies and browser protocols.
+* **4. Hypertext:** Supports non linear navigation by allowing students to move seamlessly between linked tabs including dashboard overview, course catalog, timetable, and policy search.
+* **5. Agent Based Interfaces:** Uses intelligent background components that calculate academic risk scores, recommend tailored activities, and alert staff to students needing support.
+* **6. Networking:** Connects student clients to central university backend servers to share course schedules, grade records, and policy documents.
 
-ASSIS rigorously adheres to Jakob Nielsen's classic usability heuristics:
+### Best Paradigm Applied
+The best paradigm applied in ASSIS is Direct Manipulation. Direct manipulation gives students immediate visual control over their academic schedule. Students interact directly with visual timetable blocks, course section buttons, and unit cards. Action results are shown instantly with zero command line syntax required, enabling error free unit management and clear schedule planning.
 
-| Heuristic | Application in ASSIS |
-|-----------|----------------------|
-| **1. Visibility of System Status** | Real-time loading indicators, dynamic progress bars (`role="progressbar"`), and status alerts inform the user of system state within < 100ms. |
-| **2. Match Between System & Real World** | Uses familiar academic mental models: credit hours, GPAs, semesters, timetables, drop/add deadlines, and official university terminology. |
-| **3. User Control & Freedom** | Every action is reversible: single-click unit drop, query clearing, search reset, and modal dismissal. |
-| **4. Consistency & Standards** | Uniform color system (Sky/Slate brand colors), consistent button placements, standardized icon metaphors (Lucide icons), and predictable navigation tabs. |
-| **5. Error Prevention** | Timetable engine algorithm checks session start/end overlaps *before* allowing enrollment, preventing schedule conflicts. |
-| **6. Recognition Rather Than Recall** | Uses visual program tags, quick topic search pills, course code badges, and auto-suggested options to minimize cognitive load. |
-| **7. Flexibility & Efficiency of Use** | Keyboard shortcuts (`Option ⌥` / `Alt` + A/S/P/E/D) for power users alongside intuitive touch/mouse controls for novices. |
-| **8. Aesthetic & Minimalist Design** | Clean typography, subtle dark/light gradients, glassmorphism containers, and elimination of unnecessary visual noise. |
-| **9. Help Users Recognize, Diagnose & Recover from Errors** | Clear, actionable error banners with `role="alert"` (e.g., *"Schedule Conflict: Class overlaps with enrolled section"*). |
-| **10. Help & Documentation** | Embedded knowledge search engine, contextual tooltips, and an accessible student motivational overview quote. |
+## 4. Human Computer Interaction Design Principles Applied
 
----
+ASSIS implements Jakob Nielsen ten usability heuristics to ensure ease of use:
 
-## 4. Universal Design Principles: Accessibility & Inclusive Design
+| Number | Nielsen Heuristic | Implementation in ASSIS |
+| --- | --- | --- |
+| 1 | Visibility of System Status | Shows immediate status updates and clear loading indicators for all user actions. |
+| 2 | Match Between System and Real World | Uses standard academic terms such as units, credits, grades, and semester timetables. |
+| 3 | User Control and Freedom | Provides single click unit removal, easy search reset, and speech stop buttons. |
+| 4 | Consistency and Standards | Uses uniform font sizes, standard button shapes, and consistent tab layouts. |
+| 5 | Error Prevention | Checks class times before enrollment to prevent schedule overlaps. |
+| 6 | Recognition Rather Than Recall | Displays major badges, clear unit chips, and quick search buttons. |
+| 7 | Flexibility and Efficiency of Use | Supports physical keyboard shortcuts, mouse clicks, and audio overview reading. |
+| 8 | Aesthetic and Minimalist Design | Presents clean text layouts and avoids unnecessary visual clutter. |
+| 9 | Help Users Recognize and Recover Errors | Displays clear error messages explaining exact reasons for enrollment failures. |
+| 10 | Help and Documentation | Includes an embedded policy search tool, Listen Overview button, and contextual help text. |
 
-Universal Design (UD) ensures the application is usable by all people, to the greatest extent possible, without the need for adaptation.
+## 5. Universal Design Principles and Accessibility
 
-```
-       ┌─────────────────────────────────────────────────────────────┐
-       │             Universal Design & Accessibility                │
-       ├──────────────────────────────┬──────────────────────────────┤
-       │  High Contrast Mode (⚡)      │  Dynamic Text Resizing (A±)  │
-       ├──────────────────────────────┼──────────────────────────────┤
-       │  Cross-Platform Keycodes     │  ARIA Landmarks & Live Region│
-       │  (Mac Option ⌥ / Win Alt)    │  (Screen Reader Optimized)   │
-       └──────────────────────────────┴──────────────────────────────┘
-```
+ASSIS implements universal design principles to support all students regardless of ability or hardware:
 
-### The 7 Universal Design Principles in ASSIS:
+* **1. Equitable Use:** Includes a skip link allowing keyboard users to jump directly to main page content.
+* **2. Flexibility in Use:** Provides high contrast mode, text size adjustment, keyboard navigation, and a Listen Overview speech button.
+* **3. Simple and Intuitive Use:** Uses clear form labels and predictable interface responses.
+* **4. Perceptible Information:** Uses semantic tags, screen reader live notification regions, and text to speech audio overview reading.
+* **5. Tolerance for Error:** Displays clear notices and validates data to prevent accidental errors.
+* **6. Low Physical Effort:** Uses large target buttons and simple single click actions.
+* **7. Size and Space for Use:** Scales smoothly across mobile phones, tablets, and desktop screens.
 
-#### 1. Equitable Use
-- **Skip Navigation Link**: `index.html` features a hidden `<a href="#main-content">` link that becomes visible on keyboard focus, allowing screen reader and keyboard-only users to bypass repetitive headers.
+### Cross Platform Keyboard Shortcuts
+ASSIS uses physical key codes so keyboard shortcuts work identically on macOS and Windows laptops:
 
-#### 2. Flexibility in Use
-- **⚡ High Contrast Mode Toggle**: One-click high-contrast mode switching to pure `#000000` background with `#FFFFFF` text and high-contrast borders for low-vision users.
-- **A+ / A- Dynamic Text Resizing**: Allows scaling base font size from 100% up to 130% without breaking layout geometry.
-- **Cross-Platform Keyboard Shortcuts**: Implemented using physical keycodes (`e.code === "KeyA"`), supporting both **macOS Option (`⌥`)** and **Windows Alt** shortcuts.
-- **Reduced Motion Support**: `@media (prefers-reduced-motion: reduce)` CSS rules automatically disable transitions for users prone to motion sickness.
+| macOS Shortcut | Windows Shortcut | Navigation Target |
+| --- | --- | --- |
+| Option plus A | Alt plus A | Open AI Assistant Chatbot |
+| Option plus S | Alt plus S | Open Timetable Schedule |
+| Option plus P | Alt plus P | Open Semester Planner |
+| Option plus E | Alt plus E | Open Events and Support |
+| Option plus D | Alt plus D | Open Overview Dashboard |
 
-#### 3. Simple and Intuitive Use
-- **Explicit Input Labels**: All input fields have matching `<label>` elements and explicit `id` attributes.
-- **Predictable Interface**: Consistent tab navigation layout and auto-dismissing 3-second status notifications.
+## 6. Human Computer Interaction Evaluation Methods
 
-#### 4. Perceptible Information
-- **ARIA Landmark Roles**: Standardized `role="banner"`, `role="main"`, `role="navigation"`, `role="tablist"`, `role="tab"`, and `role="tabpanel"`.
-- **Live Region Announcements**: Screen-reader live region (`aria-live="polite"`) announces tab navigation, login events, and enrollment actions.
+The application interface was evaluated using four standard usability methods:
+* **1. Heuristic Evaluation:** Screen layouts were checked against Nielsen usability principles to remove friction.
+* **2. Cognitive Walkthrough:** Common student tasks were tested step by step to ensure clear completion paths.
+* **3. Accessibility Audit:** Checked text contrast ratios and screen reader compatibility against web accessibility standards.
+* **4. Automated Usability Testing:** Automated JavaScript tests verified shortcut handlers, conflict algorithms, and recommendation rules.
 
-#### 5. Tolerance for Error
-- **Assertive Alerts**: Error messages use `role="alert"` (assertive) to ensure immediate screen-reader callouts.
-- **Destructive Action Confirmation**: Dropping a unit or clearing data requires explicit confirmation.
+## 7. Exhaustive Automated Test Suite
 
-#### 6. Low Physical Effort
-- **44 × 44 px Touch Targets**: CSS enforces minimum 44px touch targets across all interactive buttons.
-- **Focus Ring Visualization**: Distinct `:focus-visible` outlines ensure keyboard focus is never lost visually.
+ASSIS includes an automated test suite executed using the command npm run test. The suite contains 14 tests across four functional areas:
+* **1. Keyboard Shortcuts:** Verifies Option plus key and Alt plus key shortcuts across operating systems.
+* **2. Activity Recommendations:** Validates student recommendations based on academic year and performance status.
+* **3. Timetable Conflict Detection:** Verifies that overlapping class times are correctly detected and non overlapping classes are allowed.
+* **4. Knowledge Search:** Confirms that policy queries return a single direct answer card.
 
-#### 7. Size and Space for Approach and Use
-- **Fluid Responsive Layout**: Grid breaks dynamically from single-column mobile (320px) to multi-column desktop.
+## 8. Citations and References
 
----
+Nielsen, J. 1994. Enhancing the explanatory power of usability heuristics. Proceedings of the SIGCHI Conference on Human Factors in Computing Systems, 152-158.
 
-## 5. HCI Evaluation Methods Applied
+Norman, D. A. 2013. The Design of Everyday Things. Revised and expanded edition. Basic Books.
 
-Four complementary HCI evaluation methods were applied during development:
+Shneiderman, B. 1983. Direct manipulation for comprehensible, language-based, and controllable user interfaces. IEEE Computer, 16(8), 57-69.
 
-```
-┌───────────────────────────┐      ┌───────────────────────────┐
-│   Heuristic Evaluation    │      │   Cognitive Walkthrough   │
-│ (10 Nielsen Rules Audit)  │      │ (Task Path Verification)  │
-└─────────────┬─────────────┘      └─────────────┬─────────────┘
-              │                                  │
-              ▼                                  ▼
-┌───────────────────────────┐      ┌───────────────────────────┐
-│   Accessibility Audit     │      │   Automated Unit Tests    │
-│ (WCAG 2.1 AA Conformance) │      │  (Node.js Test Runner)    │
-└───────────────────────────┘      └───────────────────────────┘
-```
+Story, M. F. 1998. Maximizing usability through universal design. Assistive Technology, 10(1), 4-12.
 
-1. **Heuristic Evaluation**: Expert walkthrough evaluating system screens against Nielsen's 10 rules.
-2. **Cognitive Walkthrough**: Step-by-step task flow evaluation focusing on new student onboarding, course enrollment, and single-answer policy lookup.
-3. **Accessibility Audit**: Verified against **WCAG 2.1 AA Standards** for color contrast ratio ($\ge 4.5:1$), keyboard-only navigation, and screen reader announcements.
-4. **Automated Integration & Usability Testing**: Executable test suite verifying keycode events, recommendation filters, and conflict detection.
-
----
-
-## 6. Exhaustive Automated Tests (`npm run test`)
-
-ASSIS includes an exhaustive automated test suite written using Node.js's native test runner (`node --test`).
-
-### Executing the Tests:
-Run the following command in your terminal:
-
-```bash
-npm run test
-```
-
-### Test Suite Execution Output:
-```text
-▶ ASSIS HCI & Universal Design Test Suite
-  ▶ Principle 2 & 6: Cross-Platform Keyboard Shortcuts & Physical Keycodes
-    ✔ should trigger AI Assistant tab on Windows Alt+A (code: KeyA, key: a)
-    ✔ should trigger AI Assistant tab on macOS Option+A producing special character 'å'
-    ✔ should trigger Timetable tab on macOS Option+S producing special character 'ß'
-    ✔ should trigger Semester Planner tab on macOS Option+P producing 'π'
-    ✔ should trigger Events & Support tab on macOS Option+E producing '´'
-    ✔ should trigger Overview Dashboard tab on macOS Option+D producing '∂'
-    ✔ should ignore keystrokes without Alt or Option modifier
-  ▶ HCI Design Principles: Personalization & Student Independence
-    ✔ should recommend Year 1 foundational activities for freshman student
-    ✔ should recommend Year 4 capstone and honors fellowship for high-GPA senior
-    ✔ should include Academic Recovery Clinic for students with low GPA
-  ▶ HCI Error Prevention: Timetable Conflict Detection
-    ✔ should detect overlapping class sessions on the same day
-    ✔ should allow non-overlapping sessions on the same day
-    ✔ should allow overlapping times on different days
-  ▶ HCI Recognition Over Recall: Focused Knowledge Search Single-Answer
-    ✔ should return single focused top-match answer for queried topic
-✔ ASSIS HCI & Universal Design Test Suite
-ℹ tests 14 | pass 14 | fail 0
-```
-
----
-*Documentation compiled for ASSIS Project • HCI & Universal Design Assessment.*
+W3C. 2018. Web Content Accessibility Guidelines version 2.1. World Wide Web Consortium.
