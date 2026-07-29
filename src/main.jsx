@@ -624,11 +624,24 @@ function App() {
     return null;
   }, [risk]);
 
-  /* List of enrolled unit IDs */
+  /* List of enrolled unit IDs - combining profile.enrolled_units, enrollments, and timetable */
   const enrolledUnitIds = useMemo(() => {
-    if (!timetable.length) return new Set();
-    return new Set(timetable.map((item) => item.unit?.unit_id).filter(Boolean));
-  }, [timetable]);
+    const set = new Set();
+    if (profile?.enrolled_units && Array.isArray(profile.enrolled_units)) {
+      profile.enrolled_units.forEach((id) => set.add(id));
+    }
+    if (profile?.enrollments && Array.isArray(profile.enrollments)) {
+      profile.enrollments.forEach((e) => {
+        if (e.status === "enrolled" && e.unit_id) set.add(e.unit_id);
+      });
+    }
+    if (timetable && timetable.length) {
+      timetable.forEach((item) => {
+        if (item.unit?.unit_id) set.add(item.unit.unit_id);
+      });
+    }
+    return set;
+  }, [profile, timetable]);
 
   const enrolledUnitsList = useMemo(() => {
     if (!timetable.length) return [];

@@ -733,9 +733,41 @@ def _seed_support_content():
         )
 
 
+def _ensure_sections_for_all_units():
+    units_without_sections = Unit.objects.filter(sections__isnull=True).distinct()
+    for unit in units_without_sections:
+        sec_a, _ = UnitSection.objects.get_or_create(
+            unit=unit,
+            section_code="Section A",
+            defaults={"instructor_name": "Dr. Academic Advisor", "room": "Hall 101", "active": True},
+        )
+        if not sec_a.sessions.exists():
+            ClassSession.objects.create(
+                section=sec_a,
+                day_of_week="Monday",
+                start_time=datetime.time(9, 0),
+                end_time=datetime.time(10, 30),
+                room="Hall 101",
+            )
+            ClassSession.objects.create(
+                section=sec_a,
+                day_of_week="Wednesday",
+                start_time=datetime.time(9, 0),
+                end_time=datetime.time(10, 30),
+                room="Hall 101",
+            )
+
+    for enrollment in StudentUnitEnrollment.objects.filter(section__isnull=True):
+        sec = enrollment.unit.sections.filter(active=True).first() or enrollment.unit.sections.first()
+        if sec:
+            enrollment.section = sec
+            enrollment.save()
+
+
 def _seed_sample_courses():
     if not Course.objects.exists():
         seed_catalog_and_demo_data()
+    _ensure_sections_for_all_units()
     return
 
 
