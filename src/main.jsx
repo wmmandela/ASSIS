@@ -644,21 +644,36 @@ function App() {
   }, [profile, timetable]);
 
   const enrolledUnitsList = useMemo(() => {
-    if (!timetable.length) return [];
-    const map = new Map();
-    timetable.forEach((item) => {
-      if (item.unit && item.unit.unit_id) {
-        if (!map.has(item.unit.unit_id)) {
-          map.set(item.unit.unit_id, {
+    const list = [];
+    const addedUnitIds = new Set();
+
+    if (timetable && timetable.length) {
+      timetable.forEach((item) => {
+        if (item.unit && item.unit.unit_id && !addedUnitIds.has(item.unit.unit_id)) {
+          addedUnitIds.add(item.unit.unit_id);
+          list.push({
             unit: item.unit,
             section: item.section,
             sessions: timetable.filter((s) => s.unit?.unit_id === item.unit.unit_id),
           });
         }
+      });
+    }
+
+    enrolledUnitIds.forEach((unitId) => {
+      if (!addedUnitIds.has(unitId)) {
+        addedUnitIds.add(unitId);
+        const matchedUnit = units.find((u) => u.unit_id === unitId) || { unit_id: unitId, title: unitId, credits: 12 };
+        list.push({
+          unit: matchedUnit,
+          section: null,
+          sessions: [],
+        });
       }
     });
-    return [...map.values()];
-  }, [timetable]);
+
+    return list;
+  }, [timetable, enrolledUnitIds, units]);
 
   /* Helper: Detect if a unit's sessions conflict with any existing session in timetable */
   function findScheduleConflict(targetUnit) {

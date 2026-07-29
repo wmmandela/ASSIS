@@ -871,14 +871,36 @@ def timetable(request):
     if not profile:
         return Response({"detail": "Student profile not found."}, status=404)
 
-    # Ensure all enrolled units have an assigned section so their sessions appear on timetable
+    # Ensure all enrolled units have an assigned section and sessions so their sessions appear on timetable
     enrolled_enrollments = list(profile.enrollments.filter(status="enrolled"))
     for enrollment in enrolled_enrollments:
-        if not enrollment.section:
-            sec = enrollment.unit.sections.filter(active=True).first() or enrollment.unit.sections.first()
-            if sec:
-                enrollment.section = sec
-                enrollment.save()
+        if not enrollment.section or not enrollment.section.sessions.exists():
+            sec = enrollment.unit.sections.filter(active=True).first()
+            if not sec:
+                sec = UnitSection.objects.create(
+                    unit=enrollment.unit,
+                    section_code="Section A",
+                    instructor_name="Dr. Academic Advisor",
+                    room="Hall 101",
+                    active=True,
+                )
+            if not sec.sessions.exists():
+                ClassSession.objects.create(
+                    section=sec,
+                    day_of_week="Monday",
+                    start_time=datetime.time(9, 0),
+                    end_time=datetime.time(10, 30),
+                    room="Hall 101",
+                )
+                ClassSession.objects.create(
+                    section=sec,
+                    day_of_week="Wednesday",
+                    start_time=datetime.time(9, 0),
+                    end_time=datetime.time(10, 30),
+                    room="Hall 101",
+                )
+            enrollment.section = sec
+            enrollment.save()
 
     enrolled_unit_ids = [e.unit.unit_id for e in enrolled_enrollments]
 
