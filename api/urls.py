@@ -5,6 +5,7 @@ from .views import (
     api_status,
     chatbot,
     choose_classes,
+    events,
     knowledge_search,
     me,
     recommendations,
@@ -12,9 +13,12 @@ from .views import (
     students,
     timetable,
     units,
+    assignments_api,
     unit_recommendations,
     enroll_unit,
+    drop_unit,
     # UI views
+
     ai_recommendations_ui,
     academic_analytics_ui,
     knowledge_search_ui,
@@ -24,6 +28,14 @@ from .views import (
     ai_assistant_ui,
     settings_ui,
     admin_dashboard,
+    admin_grade_student_api,
+    admin_grade_item_api,
+    admin_add_assignment_api,
+    admin_add_event_api,
+    admin_overview_api,
+    api_logout,
+    api_login,
+    api_register,
 )
 
 urlpatterns = [
@@ -45,9 +57,22 @@ urlpatterns = [
     path("ai-assistant-ui/", ai_assistant_ui, name="ai_assistant_ui"),
     path("settings-ui/", settings_ui, name="settings_ui"),
     path("me/", me, name="api-me"),
+    path("events/", events, name="api-events"),
+    path("assignments/", assignments_api, name="api-assignments"),
     path("timetable/", timetable, name="api-timetable"),
     path("units/", units, name="api-units"),
     path("units/recommendations/", unit_recommendations, name="api-unit-recommendations"),
     path("units/enroll/", enroll_unit, name="api-unit-enroll"),
+    path("units/drop/", drop_unit, name="api-unit-drop"),
+
     path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
+    path("admin/overview/", admin_overview_api, name="admin-overview-api"),
+    path("admin/grade-student/", admin_grade_student_api, name="admin-grade-student-api"),
+    path("admin/grade-item/", admin_grade_item_api, name="admin-grade-item-api"),
+    path("admin/add-assignment/", admin_add_assignment_api, name="admin-add-assignment-api"),
+    path("admin/add-event/", admin_add_event_api, name="admin-add-event-api"),
+    path("auth/logout/", api_logout, name="api-logout"),
+    path("auth/login/", api_login, name="api-login"),
+    path("auth/register/", api_register, name="api-register"),
 ]
+

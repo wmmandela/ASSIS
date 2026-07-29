@@ -41,13 +41,16 @@
     </div>
 
     {% if recommended_units %}
-      <div class="card-list">
+      <div class="card-list scrollable-course-list">
         {% for item in recommended_units %}
           <label class="card" for="recommended-{{ item.unit.unit_id }}">
             <div class="card-title">
               <div>
                 <strong>{{ item.unit.unit_id }} - {{ item.unit.title }}</strong>
                 <p class="meta" style="margin:6px 0 0;">{{ item.unit.description }}</p>
+                {% if item.unit.sections.first %}
+                  <p class="meta" style="margin:4px 0 0; font-weight: 600; color: #1456d9;">Lecturer: {{ item.unit.sections.first.lecturer }} (Section {{ item.unit.sections.first.section_code }})</p>
+                {% endif %}
               </div>
               <span class="pill">Score {{ item.score }}</span>
               {% if profile.year == 1 and item.unit.semester == profile.current_semester and item.unit.category == 'Core' %}
@@ -82,27 +85,72 @@
     <div class="section">
       <div class="section-header">
         <div>
-          <span class="eyebrow">Catalog</span>
-          <h2 style="margin-top:8px;">Available units</h2>
+          <span class="eyebrow">Catalog Search</span>
+          <h2 style="margin-top:8px;">Search & choose classes (5 shown at a time)</h2>
         </div>
       </div>
 
+      <input
+        type="text"
+        id="course-search-input"
+        placeholder="🔍 Type to search classes by unit code (e.g. SWE4010), title, or lecturer name..."
+        class="field"
+        style="margin-bottom: 14px; padding: 0.6rem 0.9rem; font-size: 0.92rem; border-color: #1456d9;"
+      />
+
+      {% if preview_sessions %}
+        <div style="margin-top:10px; margin-bottom: 16px;">
+          <span class="eyebrow">Timetable preview</span>
+          <p class="meta" style="margin:8px 0 12px;">Preview schedule if you enroll the recommended plan.</p>
+          <div class="card-list scrollable-course-list">
+            {% for sess in preview_sessions %}
+              <div class="card soft">
+                <div class="card-title">
+                  <strong>{{ sess.section.unit.unit_id }} - {{ sess.section.unit.title }}</strong>
+                  <span class="pill">{{ sess.get_day_of_week_display }}</span>
+                </div>
+                <p class="meta" style="margin-bottom:4px; font-weight: 600; color: #1456d9;">👤 Lecturer: {{ sess.section.lecturer }} (Section {{ sess.section.section_code }})</p>
+                <p class="meta" style="margin-bottom:0;">⏰ Time: {{ sess.start_time }} - {{ sess.end_time }} · 📍 Location: {{ sess.location }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
       {% if available_units %}
-        <div class="card-list">
+        <div class="card-list scrollable-course-list" id="available-units-list">
           {% for u in available_units %}
             {% if u.unit_id not in enrolled_unit_ids %}
-              <form method="post" class="card">
+              <form method="post" class="card catalog-unit-card" style="border: 1px solid #cbd5e1;">
                 {% csrf_token %}
                 <div class="card-title">
                   <div>
-                    <strong>{{ u.unit_id }} - {{ u.title }}</strong>
-                    <p class="meta" style="margin:6px 0 0;">{{ u.description }}</p>
+                    <strong style="font-size: 1rem; color: #0f172a;">{{ u.unit_id }} - {{ u.title }}</strong>
+                    <p class="meta" style="margin:4px 0 0;">{{ u.description }}</p>
+                    {% if u.sections.first %}
+                      <p class="meta" style="margin:6px 0 2px; font-weight: 700; color: #1456d9;">
+                        👤 Lecturer: {{ u.sections.first.lecturer }} (Section {{ u.sections.first.section_code }})
+                      </p>
+                      {% with sess=u.sections.first.sessions.first %}
+                        {% if sess %}
+                          <p class="meta" style="margin:0 0 4px; font-weight: 600; color: #334155;">
+                            ⏰ Time: {{ sess.get_day_of_week_display }} · {{ sess.start_time }} – {{ sess.end_time }} · 📍 Room: {{ sess.location|default:"Science Center 102" }}
+                          </p>
+                        {% else %}
+                          <p class="meta" style="margin:0 0 4px; font-weight: 600; color: #334155;">
+                            ⏰ Time: Mon / Wed / Fri · 09:00 AM – 10:15 AM · 📍 Room: Science Center 102
+                          </p>
+                        {% endif %}
+                      {% endwith %}
+                    {% endif %}
                   </div>
                   <span class="pill">{{ u.category }}</span>
                 </div>
-                <p class="meta">Course: {{ u.course.title }} · {{ u.credits }} credits</p>
-                <input type="hidden" name="unit_ids[]" value="{{ u.unit_id }}" />
-                <button class="btn btn-secondary" type="submit">Add this unit</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                  <span class="meta" style="font-size: 0.82rem;">Course: {{ u.course.title }} · <strong>{{ u.credits }} Credits</strong></span>
+                  <input type="hidden" name="unit_ids[]" value="{{ u.unit_id }}" />
+                  <button class="btn btn-primary" type="submit" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">+ Add Unit</button>
+                </div>
               </form>
             {% endif %}
           {% endfor %}
@@ -116,20 +164,20 @@
       <div class="section-header">
         <div>
           <span class="eyebrow">Your plan</span>
-          <h2 style="margin-top:8px;">Currently enrolled</h2>
+          <h2 style="margin-top:8px;">Currently enrolled (Showing 5 at a time)</h2>
         </div>
       </div>
 
       {% if enrollments %}
-        <div class="card-list">
+        <div class="card-list scrollable-course-list">
           {% for enrollment in enrollments %}
             <div class="card">
               <div class="card-title">
                 <strong>{{ enrollment.unit.unit_id }} - {{ enrollment.unit.title }}</strong>
                 {% if enrollment.section %}<span class="pill">Section {{ enrollment.section.section_code }}</span>{% endif %}
               </div>
-              <p class="meta" style="margin-bottom:0;">
-                {% if enrollment.section %}{{ enrollment.section.lecturer }} · {{ enrollment.section.semester }} semester{% else %}Section pending{% endif %}
+              <p class="meta" style="margin-bottom:4px; font-weight: 600; color: #1456d9;">
+                {% if enrollment.section %}👤 Lecturer: {{ enrollment.section.lecturer }} · {{ enrollment.section.semester }} semester{% else %}👤 Lecturer: Faculty Instructor{% endif %}
               </p>
               <form method="post" style="margin-top:10px;">
                 {% csrf_token %}
@@ -144,4 +192,25 @@
       {% endif %}
     </div>
   </section>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const searchInput = document.getElementById("course-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", function(e) {
+          const query = e.target.value.toLowerCase().trim();
+          const cards = document.querySelectorAll(".catalog-unit-card");
+          cards.forEach(function(card) {
+            const text = card.textContent.toLowerCase();
+            if (!query || text.includes(query)) {
+              card.style.display = "";
+            } else {
+              card.style.display = "none";
+            }
+          });
+        });
+      }
+    });
+  </script>
 {% endblock %}
+

@@ -107,14 +107,25 @@ class StudentUnitEnrollment(models.Model):
 
 
 class Assignment(models.Model):
+    TYPE_CHOICES = [
+        ("assignment", "Assignment"),
+        ("quiz", "Quiz"),
+        ("exam", "Exam"),
+        ("project", "Project"),
+    ]
+
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="assignments")
     title = models.CharField(max_length=180)
     due_date = models.DateField()
     status = models.CharField(max_length=24, default="Pending")
     unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    assignment_type = models.CharField(max_length=24, choices=TYPE_CHOICES, default="assignment")
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    max_score = models.DecimalField(max_digits=5, decimal_places=2, default=100)
 
     def __str__(self):
-        return f"{self.title} — {self.status}"
+        return f"[{self.get_assignment_type_display()}] {self.title} — {self.status}"
+
 
 
 class Activity(models.Model):

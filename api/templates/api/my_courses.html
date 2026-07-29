@@ -16,12 +16,16 @@
 
   <section class="grid-2">
     <div class="section">
-      <div class="section-header"><div><span class="eyebrow">Enrollment</span><h2 style="margin-top:8px;">Current units</h2></div></div>
-      <div class="card-list">
+      <div class="section-header"><div><span class="eyebrow">Enrollment</span><h2 style="margin-top:8px;">Current units (Showing 5 at a time)</h2></div></div>
+      <div class="card-list scrollable-course-list">
         {% for e in enrollments %}
           <div class="card">
-            <div class="card-title"><strong>{{ e.unit.unit_id }} - {{ e.unit.title }}</strong>{% if e.section %}<span class="pill">Section {{ e.section.section_code }}</span>{% endif %}</div>
-            <p class="meta" style="margin-bottom:0;">{% if e.section %}{{ e.section.lecturer }}{% else %}Section pending{% endif %}</p>
+            <div class="card-title">
+              <strong>{{ e.unit.unit_id }} - {{ e.unit.title }}</strong>
+              {% if e.section %}<span class="pill">Section {{ e.section.section_code }}</span>{% endif %}
+            </div>
+            <p class="meta" style="margin-bottom:4px; font-weight: 600; color: #1456d9;">Lecturer: {% if e.section %}{{ e.section.lecturer }}{% else %}Faculty Instructor{% endif %}</p>
+            <p class="meta" style="margin-bottom:0;">Category: {{ e.unit.category }} · {{ e.unit.credits }} Credits</p>
           </div>
         {% empty %}
           <div class="message warning">No enrolled units yet.</div>
@@ -30,12 +34,16 @@
     </div>
 
     <div class="section">
-      <div class="section-header"><div><span class="eyebrow">Timetable</span><h2 style="margin-top:8px;">Class meetings</h2></div></div>
-      <div class="card-list">
+      <div class="section-header"><div><span class="eyebrow">Timetable</span><h2 style="margin-top:8px;">Class meetings (Showing 5 at a time)</h2></div></div>
+      <div class="card-list scrollable-course-list">
         {% for session in sessions %}
           <div class="card">
-            <div class="card-title"><strong>{{ session.section.unit.unit_id }}</strong><span class="pill">{{ session.get_day_of_week_display }}</span></div>
-            <p class="meta" style="margin-bottom:0;">{{ session.start_time }} - {{ session.end_time }} · {{ session.location }}</p>
+            <div class="card-title">
+              <strong>{{ session.section.unit.unit_id }} - {{ session.section.unit.title }}</strong>
+              <span class="pill">{{ session.get_day_of_week_display }}</span>
+            </div>
+            <p class="meta" style="margin-bottom:4px; font-weight: 600; color: #1456d9;">Lecturer: {{ session.section.lecturer }} (Section {{ session.section.section_code }})</p>
+            <p class="meta" style="margin-bottom:0;">Time: {{ session.start_time }} - {{ session.end_time }} · Location: {{ session.location }}</p>
           </div>
         {% empty %}
           <div class="message warning">Your timetable is empty.</div>
@@ -43,4 +51,5 @@
       </div>
     </div>
   </section>
+
 {% endblock %}

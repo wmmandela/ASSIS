@@ -40,11 +40,41 @@
     <div class="section">
       <div class="section-header">
         <div>
+          <span class="eyebrow">AI Insights</span>
+          <h2 style="margin-top:8px;">What ASSIS recommends next</h2>
+        </div>
+        <span class="pill {{ risk.tone }}">{{ risk.level|title }}</span>
+      </div>
+      <div class="card-list" style="margin-top:10px;">
+        {% if recommendations %}
+          {% for item in recommendations|slice:":2" %}
+            <div class="card soft">
+              <div class="card-title">
+                <strong>{{ item.title }}</strong>
+                <span class="pill">{{ item.category }}</span>
+              </div>
+              <p class="meta" style="margin-bottom:0;">{{ item.reason }}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="message">AI Insights will appear after support catalog data is available.</div>
+        {% endif %}
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <a class="btn btn-primary" href="{% url 'ai_recommendations_ui' %}">Open AI recommendations</a>
+        <a class="btn btn-secondary" href="{% url 'academic_analytics_ui' %}">View risk details</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div>
           <span class="eyebrow">Academic signal</span>
           <h2 style="margin-top:8px;">Risk and interventions</h2>
         </div>
         <span class="pill {{ risk.tone }}">{{ risk.level|title }}</span>
       </div>
+
       <div class="progress {{ risk.tone }}" aria-label="Risk score">
         <span style="width: {{ risk.score }}%;"></span>
       </div>
@@ -62,6 +92,7 @@
     </div>
 
     <div class="section">
+
       <div class="section-header">
         <div>
           <span class="eyebrow">Next actions</span>

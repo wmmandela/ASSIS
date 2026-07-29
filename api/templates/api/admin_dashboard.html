@@ -1,15 +1,15 @@
 {% extends "api/base.html" %}
 
-{% block title %}Admin Dashboard - ASSIS{% endblock %}
+{% block title %}Institutional Admin Dashboard - ASSIS{% endblock %}
 
 {% block content %}
 <section class="section">
   <div class="section-header">
     <div>
-      <span class="eyebrow">Admin</span>
-      <h1 style="margin-top: 8px">Institution overview</h1>
+      <span class="eyebrow">Institutional Administration</span>
+      <h1 style="margin-top: 8px">Superadmin Control & Student Dynamics Center</h1>
       <p class="meta" style="margin-bottom: 0">
-        Aggregate view of all students, risk signals, and workload across ASSIS.
+        Manage student factors, grade dynamics, add events, assignments, and quizzes directly to the database.
       </p>
     </div>
   </div>
@@ -17,7 +17,7 @@
   <div class="grid-4">
     <div class="stat">
       <strong>{{ total_students }}</strong>
-      <span>Total students</span>
+      <span>Total Students</span>
     </div>
     <div class="stat">
       <strong>{{ avg_gpa }}</strong>
@@ -25,23 +25,213 @@
     </div>
     <div class="stat">
       <strong>{{ avg_attendance }}%</strong>
-      <span>Average attendance</span>
+      <span>Average Attendance</span>
     </div>
     <div class="stat">
       <strong>{{ avg_risk_score }}</strong>
-      <span>Average risk score</span>
+      <span>Average Risk Score</span>
     </div>
   </div>
 </section>
 
+<!-- Student Dynamics & Direct DB Grading Section -->
+<section class="section">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Direct Database Operations</span>
+      <h2 style="margin-top: 8px">Grade & Update Student Dynamics</h2>
+      <p class="meta">Changes save directly to DB and trigger automatic academic risk recalculation.</p>
+    </div>
+  </div>
+
+  <div class="card-list" style="gap: 1.5rem;">
+    {% for s in students %}
+    <div class="card" style="border: 1px solid #e2e8f0; padding: 1.25rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+          <strong style="font-size: 1.1rem; color: #0f172a;">{{ s.name }}</strong>
+          <span style="color: #64748b; font-size: 0.9rem; margin-left: 0.5rem;">({{ s.student_id }}) — {{ s.program }} (Year {{ s.year }})</span>
+        </div>
+        <div>
+          <span class="pill" style="background: #f1f5f9; color: #334155;">GPA: {{ s.gpa }}</span>
+          <span class="pill" style="background: #e0f2fe; color: #0369a1;">Attendance: {{ s.attendance }}%</span>
+          <span class="pill" style="background: #fef3c7; color: #b45309;">LMS: {{ s.lms_activity }}%</span>
+        </div>
+      </div>
+
+      <form method="POST" action="" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) gap: 0.75rem; align-items: end;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="grade_student">
+        <input type="hidden" name="student_id" value="{{ s.student_id }}">
+
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">GPA (0 - 4.0)</label>
+          <input type="number" step="0.01" min="0" max="4.0" name="gpa" value="{{ s.gpa }}" class="form-input" style="padding: 0.4rem; font-size: 0.9rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Attendance %</label>
+          <input type="number" min="0" max="100" name="attendance" value="{{ s.attendance }}" class="form-input" style="padding: 0.4rem; font-size: 0.9rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">LMS Activity %</label>
+          <input type="number" min="0" max="100" name="lms_activity" value="{{ s.lms_activity }}" class="form-input" style="padding: 0.4rem; font-size: 0.9rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Recent Grade %</label>
+          <input type="number" min="0" max="100" name="recent_grade" value="{{ s.recent_grade }}" class="form-input" style="padding: 0.4rem; font-size: 0.9rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Wellbeing (0 - 100)</label>
+          <input type="number" min="0" max="100" name="wellbeing_score" value="{{ s.wellbeing_score }}" class="form-input" style="padding: 0.4rem; font-size: 0.9rem;">
+        </div>
+        <div>
+          <button type="submit" class="btn primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem; width: 100%;">Save to DB</button>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Admin Management Forms: Add Assignments, Quizzes & Events -->
+<section class="grid-2">
+  <!-- Form 1: Add Assignment / Quiz -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Academic Content</span>
+        <h2 style="margin-top: 8px">Add Assignment or Quiz</h2>
+        <p class="meta">Adds a new assignment or quiz directly to the student's record in the database.</p>
+      </div>
+    </div>
+
+    <form method="POST" action="" style="display: flex; flex-direction: column; gap: 1rem; background: #ffffff; padding: 1.25rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_assignment">
+
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Select Student</label>
+        <select name="student_id" required class="form-input" style="padding: 0.5rem; width: 100%;">
+          {% for s in students %}
+          <option value="{{ s.student_id }}">{{ s.name }} ({{ s.student_id }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Select Course Unit (Optional)</label>
+        <select name="unit_id" class="form-input" style="padding: 0.5rem; width: 100%;">
+          <option value="">-- General / None --</option>
+          {% for u in all_units %}
+          <option value="{{ u.unit_id }}">{{ u.unit_id }} - {{ u.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem;">
+        <div>
+          <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Title</label>
+          <input type="text" name="title" required placeholder="e.g. Midterm Quiz 1" class="form-input" style="padding: 0.5rem; width: 100%;">
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Type</label>
+          <select name="assignment_type" class="form-input" style="padding: 0.5rem; width: 100%;">
+            <option value="assignment">Assignment</option>
+            <option value="quiz">Quiz</option>
+            <option value="exam">Exam</option>
+            <option value="project">Project</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+        <div>
+          <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Score Received</label>
+          <input type="number" step="0.5" name="score" value="85" class="form-input" style="padding: 0.5rem; width: 100%;">
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Max Score</label>
+          <input type="number" step="0.5" name="max_score" value="100" class="form-input" style="padding: 0.5rem; width: 100%;">
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Due Date</label>
+          <input type="date" name="due_date" required class="form-input" style="padding: 0.5rem; width: 100%;">
+        </div>
+      </div>
+
+      <button type="submit" class="btn primary" style="align-self: flex-start; padding: 0.6rem 1.2rem;">Add Assignment/Quiz to DB</button>
+    </form>
+  </div>
+
+  <!-- Form 2: Add Event / Activity -->
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Campus Activities</span>
+        <h2 style="margin-top: 8px">Add Event or Activity</h2>
+        <p class="meta">Adds a workshop, event, or academic deadline to the student calendar directly in DB.</p>
+      </div>
+    </div>
+
+    <form method="POST" action="" style="display: flex; flex-direction: column; gap: 1rem; background: #ffffff; padding: 1.25rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_event">
+
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Select Student</label>
+        <select name="student_id" required class="form-input" style="padding: 0.5rem; width: 100%;">
+          {% for s in students %}
+          <option value="{{ s.student_id }}">{{ s.name }} ({{ s.student_id }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Select Course Unit (Optional)</label>
+        <select name="unit_id" class="form-input" style="padding: 0.5rem; width: 100%;">
+          <option value="">-- General Campus Event --</option>
+          {% for u in all_units %}
+          <option value="{{ u.unit_id }}">{{ u.unit_id }} - {{ u.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Event Title</label>
+        <input type="text" name="title" required placeholder="e.g. Hackathon / Career Workshop" class="form-input" style="padding: 0.5rem; width: 100%;">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <div>
+          <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Category</label>
+          <select name="category" class="form-input" style="padding: 0.5rem; width: 100%;">
+            <option value="Academic">Academic</option>
+            <option value="Campus Life">Campus Life</option>
+            <option value="Workshop">Workshop</option>
+            <option value="Support">Support Service</option>
+            <option value="Exam Prep">Exam Prep</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Event Date</label>
+          <input type="date" name="event_date" required class="form-input" style="padding: 0.5rem; width: 100%;">
+        </div>
+      </div>
+
+      <button type="submit" class="btn primary" style="align-self: flex-start; padding: 0.6rem 1.2rem;">Add Event to DB</button>
+    </form>
+  </div>
+</section>
+
+<!-- Risk Signals & Recent Activities -->
 <section class="grid-2">
   <div class="section">
     <div class="section-header">
       <div>
-        <span class="eyebrow">Academic risk</span>
-        <h2 style="margin-top: 8px">Students flagged high-risk</h2>
+        <span class="eyebrow">Academic Risk</span>
+        <h2 style="margin-top: 8px">Students Flagged High-Risk</h2>
       </div>
-      <span class="pill danger">{{ at_risk_students|length }}</span>
+      <span class="pill danger">{{ at_risk_students|length }} Flagged</span>
     </div>
     {% if at_risk_students %}
     <div class="card-list">
@@ -49,10 +239,10 @@
       <div class="card soft">
         <div class="card-title">
           <strong>{{ record.student.name }}</strong>
-          <span class="pill">{{ record.risk_level|title }}</span>
+          <span class="pill danger">{{ record.risk_level|title }}</span>
         </div>
         <p class="meta" style="margin-bottom: 0">
-          Risk score {{ record.risk_score }} · {{ record.student.student_id }}
+          Risk Score: <strong>{{ record.risk_score }}</strong> / 100 · {{ record.student.student_id }} ({{ record.student.program }})
         </p>
       </div>
       {% endfor %}
@@ -65,86 +255,30 @@
   <div class="section">
     <div class="section-header">
       <div>
-        <span class="eyebrow">Workload</span>
-        <h2 style="margin-top: 8px">Institution snapshot</h2>
+        <span class="eyebrow">Recent Database Additions</span>
+        <h2 style="margin-top: 8px">Latest Assignments & Events</h2>
       </div>
     </div>
     <div class="card-list">
+      {% for a in all_assignments|slice:":4" %}
       <div class="card">
         <div class="card-title">
-          <strong>{{ total_courses }}</strong> <span class="pill">Courses</span>
+          <strong>[{{ a.get_assignment_type_display }}] {{ a.title }}</strong>
+          <span class="pill">{{ a.student.name }}</span>
         </div>
+        <p class="meta" style="margin-bottom: 0">Due: {{ a.due_date }} · Score: {{ a.score }}/{{ a.max_score }} ({{ a.status }})</p>
       </div>
+      {% endfor %}
+      {% for e in all_activities|slice:":3" %}
       <div class="card">
         <div class="card-title">
-          <strong>{{ total_units }}</strong>
-          <span class="pill">Active units</span>
+          <strong>[Event] {{ e.title }}</strong>
+          <span class="pill">{{ e.student.name }}</span>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-title">
-          <strong>{{ pending_assignments }}</strong>
-          <span class="pill">Pending assignments</span>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">
-          <strong>{{ avg_wellbeing }}</strong>
-          <span class="pill">Avg wellbeing score</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="grid-2">
-  <div class="section">
-    <div class="section-header">
-      <div>
-        <span class="eyebrow">Enrollment</span>
-        <h2 style="margin-top: 8px">Most enrolled units</h2>
-      </div>
-    </div>
-    {% if unit_enrollment %}
-    <div class="card-list">
-      {% for unit in unit_enrollment %}
-      <div class="card">
-        <div class="card-title">
-          <strong>{{ unit.unit_id }} - {{ unit.title }}</strong>
-          <span class="pill">{{ unit.enrolled_count }} enrolled</span>
-        </div>
+        <p class="meta" style="margin-bottom: 0">Date: {{ e.event_date }} · Category: {{ e.category }}</p>
       </div>
       {% endfor %}
     </div>
-    {% else %}
-    <div class="message">No enrollment data available.</div>
-    {% endif %}
-  </div>
-
-  <div class="section">
-    <div class="section-header">
-      <div>
-        <span class="eyebrow">Feedback</span>
-        <h2 style="margin-top: 8px">Recent student feedback</h2>
-      </div>
-    </div>
-    {% if recent_feedback %}
-    <div class="card-list">
-      {% for item in recent_feedback %}
-      <div class="card soft">
-        <div class="card-title">
-          <strong>{{ item.student.name|default:"Anonymous" }}</strong>
-          <span class="pill">{{ item.sentiment_label|default:"Unrated" }}</span>
-        </div>
-        <p class="meta" style="margin-bottom: 0">
-          {{ item.text|truncatewords:20 }}
-        </p>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="message">No feedback submitted yet.</div>
-    {% endif %}
   </div>
 </section>
 {% endblock %}

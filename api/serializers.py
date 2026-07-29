@@ -67,10 +67,12 @@ class UnitSerializer(serializers.ModelSerializer):
 
 class ClassSessionSerializer(serializers.ModelSerializer):
     section = UnitSectionSerializer(read_only=True)
+    unit = UnitSerializer(source="section.unit", read_only=True)
 
     class Meta:
         model = ClassSession
-        fields = ["section", "day_of_week", "start_time", "end_time", "location"]
+        fields = ["section", "unit", "day_of_week", "start_time", "end_time", "location"]
+
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
@@ -87,7 +89,8 @@ class AssignmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Assignment
-        fields = ["title", "due_date", "status", "unit"]
+        fields = ["id", "title", "due_date", "status", "unit", "assignment_type", "score", "max_score"]
+
 
 
 class ActivitySerializer(serializers.ModelSerializer):

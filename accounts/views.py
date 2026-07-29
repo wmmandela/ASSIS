@@ -11,17 +11,23 @@ from api.models import StudentProfile
 
 def login_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.is_staff:
+            return redirect("admin_dashboard")
         return redirect("dashboard")
 
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            login(request, form.get_user())
+            user = form.get_user()
+            login(request, user)
+            if user.is_superuser or user.is_staff:
+                return redirect("admin_dashboard")
             return redirect("dashboard")
     else:
         form = AuthenticationForm(request)
 
     return render(request, "accounts/login.html", {"form": form})
+
 
 
 def register_view(request: HttpRequest) -> HttpResponse:
