@@ -118,9 +118,44 @@ a {
 }
 
 /* Undo min-height for purely decorative / text-only anchors inside prose */
-p a,
-li a {
-  min-height: unset;
-  min-width: unset;
-  display: inline;
+/* High contrast theme mode (UD Principle 4: Perceptible Information) */
+html.high-contrast,
+body.high-contrast {
+  background: #000000 !important;
+  color: #ffffff !important;
 }
+
+html.high-contrast *,
+body.high-contrast * {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+html.high-contrast button,
+body.high-contrast button,
+html.high-contrast a,
+body.high-contrast a {
+  outline: 2px solid #ffffff !important;
+}
+
+html.high-contrast :focus-visible {
+  outline: 3px solid #ffff00 !important;
+}
+
+/* Scrollable course list showing 5 items at a time */
+.scrollable-course-list {
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scroll-behavior: smooth;
+}
+.scrollable-course-list::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollable-course-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+

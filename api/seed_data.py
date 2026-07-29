@@ -7,6 +7,7 @@ from .models import (
     Assignment,
     ClassSession,
     Course,
+    KnowledgeDocument,
     StudentProfile,
     StudentUnitEnrollment,
     Unit,
@@ -270,20 +271,50 @@ PROGRAM_UNIT_SPECS = {
 }
 
 
-def _normalize_schedule(day_set, section_code):
-    if day_set == {"mon", "wed"}:
-        base_times = {"A": (("09:00", "10:30"), ("09:00", "10:30")), "B": (("11:00", "12:30"), ("11:00", "12:30")), "C": (("13:00", "14:30"), ("13:00", "14:30"))}
-        start_end = base_times.get(section_code, (("09:00", "10:30"), ("09:00", "10:30")))
-        return [("mon", start_end[0][0], start_end[0][1]), ("wed", start_end[1][0], start_end[1][1])]
-    if day_set == {"tue", "thu"}:
-        base_times = {"A": (("09:00", "10:30"), ("09:00", "10:30")), "B": (("11:00", "12:30"), ("11:00", "12:30")), "C": (("13:00", "14:30"), ("13:00", "14:30"))}
-        start_end = base_times.get(section_code, (("09:00", "10:30"), ("09:00", "10:30")))
-        return [("tue", start_end[0][0], start_end[0][1]), ("thu", start_end[1][0], start_end[1][1])]
-    if day_set == {"fri"}:
-        return [("fri", "09:00", "12:00")]
-    if day_set == {"sat"}:
-        return [("sat", "09:00", "12:00")]
-    return [("mon", "09:00", "10:30")]
+DAY_PAIRS = [
+    ("mon", "wed"),
+    ("tue", "thu"),
+    ("wed", "fri"),
+    ("mon", "thu"),
+    ("tue", "fri"),
+]
+
+TIME_SLOTS = [
+    ("07:00", "08:30"),
+    ("09:00", "10:30"),
+    ("11:00", "12:30"),
+    ("13:00", "14:30"),
+    ("15:00", "16:30"),
+    ("17:00", "18:30"),
+    ("19:00", "20:30"),
+]
+
+LECTURERS = [
+    "Dr. Alice Johnson",
+    "Prof. David Smith",
+    "Dr. Michael Lee",
+    "Dr. Sarah Jenkins",
+    "Prof. Robert Chen",
+    "Dr. Emily Taylor",
+]
+
+
+def _get_varied_unit_schedule(unit_id: str, section_code: str):
+    sec_offset = {"A": 0, "B": 1, "C": 2, "D": 3}.get(section_code, 0)
+    char_sum = sum(ord(c) * (i + 1) for i, c in enumerate(str(unit_id)))
+
+    day_idx = (char_sum + sec_offset * 2) % len(DAY_PAIRS)
+    time_idx = ((char_sum * 3) + sec_offset * 2) % len(TIME_SLOTS)
+    lecturer_idx = (char_sum + sec_offset) % len(LECTURERS)
+
+    day1, day2 = DAY_PAIRS[day_idx]
+    start, end = TIME_SLOTS[time_idx]
+    lecturer = LECTURERS[lecturer_idx]
+
+    return [
+        (day1, start, end),
+        (day2, start, end),
+    ], lecturer
 
 
 def _coerce_time(value):
@@ -293,6 +324,9 @@ def _coerce_time(value):
 
 
 def seed_catalog_and_demo_data():
+    ClassSession.objects.all().delete()
+    UnitSection.objects.all().delete()
+
     for course in COURSES:
         course_obj, _ = Course.objects.update_or_create(
             course_id=course["course_id"],
@@ -305,7 +339,7 @@ def seed_catalog_and_demo_data():
         )
 
         unit_specs = PROGRAM_UNIT_SPECS.get(course["course_id"], [])
-        for unit_data in unit_specs:
+        for unit_idx, unit_data in enumerate(unit_specs):
             if isinstance(unit_data, tuple):
                 unit_id, title, year_or_group, prereqs = unit_data
                 description = (
@@ -339,15 +373,10 @@ def seed_catalog_and_demo_data():
                 if prereq_obj:
                     unit_obj.prerequisites.add(prereq_obj)
 
-            day_set = {"mon", "wed"} if unit_obj.unit_id.startswith(("SWE", "APT", "IST", "ENG", "MTH", "FIL")) else {"tue", "thu"}
-            section_codes = ["A", "B", "C"] if unit_obj.category in {"First Year", "Foundations"} else ["A"]
+            section_codes = ["A", "B", "C"] if unit_obj.category in {"First Year", "Foundations", "Year 1"} else ["A", "B"]
             for section_code in section_codes:
-                lecturer_name = {
-                    "A": f"Dr. {course_obj.course_id} Faculty",
-                    "B": f"Prof. {course_obj.course_id} Teaching Team",
-                    "C": f"Ms. {course_obj.course_id} Learning Lab",
-                }.get(section_code, f"Dr. {course_obj.course_id} Faculty")
-                section_obj, _ = UnitSection.objects.get_or_create(
+                sessions_info, lecturer_name = _get_varied_unit_schedule(unit_obj.unit_id, section_code)
+                section_obj, _ = UnitSection.objects.update_or_create(
                     unit=unit_obj,
                     section_code=section_code,
                     defaults={
@@ -356,19 +385,53 @@ def seed_catalog_and_demo_data():
                         "active": True,
                     },
                 )
-                for day, start, end in _normalize_schedule(day_set, section_code):
+                # Clear existing sessions for fresh seed
+                section_obj.sessions.all().delete()
+                for day, start, end in sessions_info:
                     room_name = {
-                        "A": "Main Campus 101",
-                        "B": "Studio 204",
-                        "C": "Innovation Lab 305",
+                        "A": "Science Center 101",
+                        "B": "Engineering Lab 204",
+                        "C": "Innovation Center 305",
                     }.get(section_code, "Main Campus")
-                    ClassSession.objects.get_or_create(
+                    ClassSession.objects.create(
                         section=section_obj,
                         day_of_week=day,
                         start_time=_coerce_time(start),
                         end_time=_coerce_time(end),
-                        defaults={"location": room_name},
+                        location=room_name,
                     )
+
+    from django.contrib.auth.models import User
+    admin_user, _ = User.objects.get_or_create(username="admin@gmail.com")
+    admin_user.email = "admin@gmail.com"
+    admin_user.first_name = "admin"
+    admin_user.is_staff = True
+    admin_user.is_superuser = True
+    admin_user.set_password("admin321")
+    admin_user.save()
+
+    # Also make superuser 'admin' have password 'admin321'
+    try:
+        user_admin = User.objects.get(username="admin")
+        user_admin.set_password("admin321")
+        user_admin.is_staff = True
+        user_admin.is_superuser = True
+        user_admin.save()
+    except User.DoesNotExist:
+        pass
+
+    StudentProfile.objects.update_or_create(
+        student_id="ADMIN001",
+        defaults={
+            "user": admin_user,
+            "name": "admin",
+            "program": "Administrator Portal",
+            "year": 4,
+            "current_semester": "Fall",
+            "gpa": 4.0,
+            "attendance": 100,
+        },
+    )
 
     for student_data in DEMO_STUDENTS:
         profile, _ = StudentProfile.objects.update_or_create(
@@ -425,6 +488,24 @@ def seed_catalog_and_demo_data():
                     "due_date": due_date,
                     "status": f"Completed ({profile.recent_grade - idx}%)" if profile.recent_grade else "Pending",
                     "unit": Unit.objects.filter(course__course_id=course_id).first() if course_id else None,
+                    "assignment_type": "assignment",
+                    "score": max(0, profile.recent_grade - idx),
+                    "max_score": 100,
+                },
+            )
+
+        for idx, title in enumerate(["Midterm Quiz 1", "Algorithm Quiz 2"]):
+            due_date = datetime.date.today() + datetime.timedelta(days=idx * 5 + 3)
+            Assignment.objects.get_or_create(
+                student=profile,
+                title=title,
+                defaults={
+                    "due_date": due_date,
+                    "status": "Graded",
+                    "unit": Unit.objects.filter(course__course_id=course_id).first() if course_id else None,
+                    "assignment_type": "quiz",
+                    "score": max(50, profile.recent_grade + (5 if idx == 0 else -5)),
+                    "max_score": 100,
                 },
             )
 
@@ -439,4 +520,79 @@ def seed_catalog_and_demo_data():
                 },
             )
 
-    return True
+    # Seed knowledge documents after all other seeding
+    _seed_knowledge_documents()
+
+
+def _seed_knowledge_documents():
+    docs = [
+        {
+            "document_id": "DOC-ADD-DROP",
+            "title": "How to Add or Drop Units in ASSIS",
+            "category": "Guide",
+            "content": (
+                "To add or drop units in the ASSIS student portal:\n\n"
+                "1. Open the 'Semester Planner' tab from the left navigation menu.\n"
+                "2. Browse the 'AI Recommended Software Engineering Units' or 'Software Engineering Course Catalog'.\n"
+                "3. Click the blue 'Select Unit' button next to any unit to enroll. The system instantly checks for schedule clashes and updates your timetable.\n"
+                "4. To drop a unit, scroll down to the 'Currently Enrolled Units' table at the bottom of the Semester Planner page.\n"
+                "5. Click the red 'Drop Unit' button next to the unit you wish to drop.\n\n"
+                "Note: ASSIS enforces a maximum of 5 enrolled units per semester and automatically prevents booking 2 classes at the same time."
+            ),
+        },
+        {
+            "document_id": "DOC-FIN-AID",
+            "title": "Institutional Financial Aid & Scholarship Policy",
+            "category": "Financial Aid",
+            "content": (
+                "Official University Financial Aid Guidelines:\n\n"
+                "• FAFSA Institution Code: 003920. Submit by March 1 for priority processing.\n"
+                "• Merit Scholarships: Students maintaining a GPA of 3.50 or higher automatically qualify for the Dean's Academic Excellence Award.\n"
+                "• Emergency Bursary Grants: Interest-free tuition installment plans and work-study placement are available via finaid@assis.edu.\n"
+                "• Office Location: Administration Building, Suite 105 | Hours: Mon-Fri 8:00 AM - 5:00 PM."
+            ),
+        },
+        {
+            "document_id": "DOC-CLASH-RULES",
+            "title": "Timetable & Schedule Conflict Prevention Rules",
+            "category": "Academic Policy",
+            "content": (
+                "Students are strictly prohibited from enrolling in two class sessions that overlap in day or time slot. "
+                "ASSIS performs real-time timetable validation when you click 'Select Unit'. "
+                "If a session time overlaps with an existing enrolled class, a red 'Time Conflict' alert is displayed and enrollment is blocked."
+            ),
+        },
+        {
+            "document_id": "DOC-RISK-POLICY",
+            "title": "Academic Early Alert & Advisor Intervention Policy",
+            "category": "Academic Policy",
+            "content": (
+                "ASSIS monitors student GPA, course attendance, LMS activity, and recent quiz scores. "
+                "If attendance drops below 75% or GPA falls below 2.50, an academic early alert is flagged. "
+                "Advisors receive automated intervention recommendations and tutoring lab referrals."
+            ),
+        },
+        {
+            "document_id": "DOC-TUTOR-LABS",
+            "title": "Tutoring Labs & Peer Coaching Services",
+            "category": "Student Services",
+            "content": (
+                "Tutoring Services Available:\n\n"
+                "• Math & Science Lab: Mon-Thu 10:00 AM - 6:00 PM (Building B, Room 204).\n"
+                "• CS & Coding Lab: Daily drop-in for Python, Java, Web Development in Science Center 102.\n"
+                "• Writing & Communication Center: Free 1-on-1 term paper feedback sessions.\n"
+                "• Book appointments online under ASSIS Support Services."
+            ),
+        },
+    ]
+
+    for doc in docs:
+        KnowledgeDocument.objects.update_or_create(
+            document_id=doc["document_id"],
+            defaults={
+                "title": doc["title"],
+                "category": doc["category"],
+                "content": doc["content"],
+            },
+        )
+
