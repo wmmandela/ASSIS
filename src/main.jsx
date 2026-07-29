@@ -367,25 +367,26 @@ function App() {
     document.documentElement.style.fontSize = `${fontSize}%`;
   }, [fontSize]);
 
-  /* Keyboard shortcuts (Universal Design Principle 2) */
+  /* Keyboard shortcuts (Universal Design Principle 2 - Supports Mac Option ⌥ & Windows Alt) */
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.altKey && (e.key === "a" || e.key === "A")) {
+      const isAltOrOption = e.altKey || (e.metaKey && e.altKey);
+      if (isAltOrOption && (e.key === "a" || e.key === "A")) {
         e.preventDefault();
         setActiveTab("chatbot");
-        announce("Navigated to AI Assistant via Alt+A shortcut");
-      } else if (e.altKey && (e.key === "s" || e.key === "S")) {
+        announce("Navigated to AI Assistant via Option/Alt+A shortcut");
+      } else if (isAltOrOption && (e.key === "s" || e.key === "S")) {
         e.preventDefault();
         setActiveTab("timetable");
-        announce("Navigated to Timetable Engine via Alt+S shortcut");
-      } else if (e.altKey && (e.key === "p" || e.key === "P")) {
+        announce("Navigated to Timetable Engine via Option/Alt+S shortcut");
+      } else if (isAltOrOption && (e.key === "p" || e.key === "P")) {
         e.preventDefault();
         setActiveTab("planner");
-        announce("Navigated to Semester Planner via Alt+P shortcut");
-      } else if (e.altKey && (e.key === "e" || e.key === "E")) {
+        announce("Navigated to Semester Planner via Option/Alt+P shortcut");
+      } else if (isAltOrOption && (e.key === "e" || e.key === "E")) {
         e.preventDefault();
         setActiveTab("events");
-        announce("Navigated to Events & Support via Alt+E shortcut");
+        announce("Navigated to Events & Support via Option/Alt+E shortcut");
       }
     }
     window.addEventListener("keydown", handleKeyDown);
