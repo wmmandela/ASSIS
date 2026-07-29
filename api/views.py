@@ -1,10 +1,51 @@
 import datetime
+import logging
+import threading
+from django.conf import settings
+from django.core.mail import send_mail
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+
+logger = logging.getLogger(__name__)
+
+def _async_send_email(subject, message, recipient_list):
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "ASSIS Support <assis.university.system@gmail.com>"),
+            recipient_list=recipient_list,
+            fail_silently=True,
+        )
+    except Exception as e:
+        logger.warning(f"Email dispatch warning: {e}")
+
+def notify_student_via_email(student_profile, subject, text_message):
+    if not student_profile:
+        return
+    email = student_profile.user.email if (student_profile.user and student_profile.user.email) else None
+    if not email:
+        email = f"{student_profile.student_id.lower()}@student.university.edu"
+    
+    formatted_subject = f"[ASSIS Alert] {subject}"
+    formatted_message = (
+        f"Dear {student_profile.name},\n\n"
+        f"{text_message}\n\n"
+        f"Academic Profile:\n"
+        f"- Student ID: {student_profile.student_id}\n"
+        f"- Program: {student_profile.program}\n"
+        f"- Semester: {student_profile.current_semester}\n\n"
+        f"Best regards,\n"
+        f"ASSIS Academic Support & Advising System"
+    )
+    
+    t = threading.Thread(target=_async_send_email, args=(formatted_subject, formatted_message, [email]))
+    t.daemon = True
+    t.start()
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
@@ -1185,6 +1226,12 @@ def enroll_unit(request):
             enrollment.section = section
         enrollment.save()
 
+    notify_student_via_email(
+        profile,
+        f"Unit Enrollment Confirmation: {unit.unit_id}",
+        f"You have successfully enrolled in {unit.unit_id} ({unit.title}) for semester {semester}."
+    )
+
     return Response({"detail": f"Unit {unit.unit_id} enrolled successfully."})
 
 
@@ -1212,6 +1259,11 @@ def drop_unit(request):
     enrollment = profile.enrollments.filter(unit__unit_id__iexact=unit_id_clean).first()
     if enrollment:
         enrollment.delete()
+        notify_student_via_email(
+            profile,
+            f"Unit Drop Notice: {unit_id_clean}",
+            f"Unit {unit_id_clean} has been removed from your active enrolled plan."
+        )
         return Response({"detail": f"Unit {unit_id_clean} dropped successfully."})
 
     return Response({"detail": f"Unit {unit_id_clean} is not currently enrolled."}, status=400)
@@ -1645,6 +1697,11 @@ def admin_add_assignment_api(request):
                 max_score=max_score,
                 status=status,
             )
+            notify_student_via_email(
+                profile,
+                f"New Academic {assignment_type.title()}: {title}",
+                f"A new {assignment_type} titled '{title}' has been added with a due date of {due_date}."
+            )
             created_count += 1
         return Response({"message": f"Created {assignment_type} '{title}' for {created_count} students"})
     else:
@@ -1660,6 +1717,11 @@ def admin_add_assignment_api(request):
             score=score,
             max_score=max_score,
             status=status,
+        )
+        notify_student_via_email(
+            profile,
+            f"New Academic {assignment_type.title()}: {title}",
+            f"A new {assignment_type} titled '{title}' has been added to your profile with a due date of {due_date}."
         )
         return Response({"message": f"Created {assignment_type} '{title}' for {profile.name}"})
 
@@ -1691,6 +1753,11 @@ def admin_add_event_api(request):
                 event_date=event_date,
                 category=category,
             )
+            notify_student_via_email(
+                profile,
+                f"Campus Event Announcement: {title}",
+                f"A new campus support event '{title}' ({category}) has been scheduled for {event_date_str}."
+            )
         return Response({"message": f"Created event '{title}' for all students"})
     else:
         profile = StudentProfile.objects.filter(student_id=student_id).first()
@@ -1701,6 +1768,12 @@ def admin_add_event_api(request):
             event_date=event_date,
             category=category,
         )
+        if profile:
+            notify_student_via_email(
+                profile,
+                f"Campus Event Announcement: {title}",
+                f"A new campus support event '{title}' ({category}) has been scheduled for {event_date_str}."
+            )
         return Response({"message": f"Created event '{title}' for {profile.name if profile else 'Class'}"})
 
 
