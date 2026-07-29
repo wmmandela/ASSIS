@@ -367,26 +367,41 @@ function App() {
     document.documentElement.style.fontSize = `${fontSize}%`;
   }, [fontSize]);
 
-  /* Keyboard shortcuts (Universal Design Principle 2 - Supports Mac Option ⌥ & Windows Alt) */
+  /* Keyboard shortcuts (Universal Design Principle 2 - Cross-platform macOS Option ⌥ & Windows Alt) */
   useEffect(() => {
     function handleKeyDown(e) {
-      const isAltOrOption = e.altKey || (e.metaKey && e.altKey);
-      if (isAltOrOption && (e.key === "a" || e.key === "A")) {
+      // Ignore when user is actively typing in a text field unless modifier keys are pressed
+      const tag = e.target?.tagName?.toLowerCase();
+      if ((tag === "input" || tag === "textarea") && !e.altKey && !e.ctrlKey && !e.metaKey) {
+        return;
+      }
+
+      const isModifier = e.altKey || (e.metaKey && e.altKey) || (e.ctrlKey && e.altKey);
+      if (!isModifier) return;
+
+      const code = e.code;
+      const key = e.key?.toLowerCase();
+
+      if (code === "KeyA" || key === "a" || key === "å") {
         e.preventDefault();
         setActiveTab("chatbot");
         announce("Navigated to AI Assistant via Option/Alt+A shortcut");
-      } else if (isAltOrOption && (e.key === "s" || e.key === "S")) {
+      } else if (code === "KeyS" || key === "s" || key === "ß") {
         e.preventDefault();
         setActiveTab("timetable");
         announce("Navigated to Timetable Engine via Option/Alt+S shortcut");
-      } else if (isAltOrOption && (e.key === "p" || e.key === "P")) {
+      } else if (code === "KeyP" || key === "p" || key === "π") {
         e.preventDefault();
         setActiveTab("planner");
         announce("Navigated to Semester Planner via Option/Alt+P shortcut");
-      } else if (isAltOrOption && (e.key === "e" || e.key === "E")) {
+      } else if (code === "KeyE" || key === "e" || key === "´") {
         e.preventDefault();
         setActiveTab("events");
         announce("Navigated to Events & Support via Option/Alt+E shortcut");
+      } else if (code === "KeyD" || key === "d" || key === "∂") {
+        e.preventDefault();
+        setActiveTab("dashboard");
+        announce("Navigated to Overview Dashboard via Option/Alt+D shortcut");
       }
     }
     window.addEventListener("keydown", handleKeyDown);
