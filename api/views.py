@@ -1157,11 +1157,13 @@ def drop_unit(request):
     if not unit_id:
         return Response({"detail": "unit_id is required."}, status=400)
 
-    enrollment = profile.enrollments.filter(unit__unit_id=unit_id, status="enrolled").first()
+    unit_id_clean = str(unit_id).strip()
+    enrollment = profile.enrollments.filter(unit__unit_id__iexact=unit_id_clean).first()
     if enrollment:
         enrollment.delete()
-        return Response({"detail": f"Unit {unit_id} dropped successfully."})
-    return Response({"detail": f"Unit {unit_id} is not currently enrolled."}, status=400)
+        return Response({"detail": f"Unit {unit_id_clean} dropped successfully."})
+
+    return Response({"detail": f"Unit {unit_id_clean} is not currently enrolled."}, status=400)
 
 
 @csrf_exempt

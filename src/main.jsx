@@ -551,7 +551,8 @@ function App() {
       const msg = data.detail || "Enrolled successfully.";
       setEnrollMessage(msg);
       announce(msg);
-      loadTimetable();
+      await loadMe();
+      await loadTimetable();
       loadUnitRecommendations(preferredTime, preferredLecturer);
       if (profile) loadUnits(profile.current_semester);
     } catch (err) {
@@ -569,7 +570,8 @@ function App() {
       const msg = data.detail || "Dropped unit successfully.";
       setEnrollMessage(msg);
       announce(msg);
-      loadTimetable();
+      await loadMe();
+      await loadTimetable();
       loadUnitRecommendations(preferredTime, preferredLecturer);
       if (profile) loadUnits(profile.current_semester);
     } catch (err) {
