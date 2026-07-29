@@ -1,5 +1,6 @@
 asgiref==3.11.1
 Django==6.0.6
+django-cors-headers>=4.3.0
 djangorestframework==3.17.1
 faiss-cpu>=1.8.0
 numpy>=1.26.0
@@ -10,3 +11,4 @@ scikit-learn>=1.4.0
 sentence-transformers>=3.0.0
 sqlparse==0.5.5
 transformers>=4.40.0
+
