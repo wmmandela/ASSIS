@@ -14,6 +14,8 @@ from .models import (
 
 
 class StudentProfileSerializer(serializers.ModelSerializer):
+    enrolled_units = serializers.SerializerMethodField()
+
     class Meta:
         model = StudentProfile
         fields = [
@@ -30,7 +32,11 @@ class StudentProfileSerializer(serializers.ModelSerializer):
             "recent_grade",
             "wellbeing_score",
             "completed_units",
+            "enrolled_units",
         ]
+
+    def get_enrolled_units(self, obj):
+        return list(obj.enrollments.filter(status="enrolled").values_list("unit__unit_id", flat=True))
 
 
 class CourseSerializer(serializers.ModelSerializer):
