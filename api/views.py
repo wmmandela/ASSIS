@@ -739,22 +739,22 @@ def _ensure_sections_for_all_units():
         sec_a, _ = UnitSection.objects.get_or_create(
             unit=unit,
             section_code="Section A",
-            defaults={"instructor_name": "Dr. Academic Advisor", "room": "Hall 101", "active": True},
+            defaults={"lecturer": "Dr. Academic Advisor", "semester": unit.semester or "Fall", "active": True},
         )
         if not sec_a.sessions.exists():
             ClassSession.objects.create(
                 section=sec_a,
-                day_of_week="Monday",
+                day_of_week="mon",
                 start_time=datetime.time(9, 0),
                 end_time=datetime.time(10, 30),
-                room="Hall 101",
+                location="Hall 101",
             )
             ClassSession.objects.create(
                 section=sec_a,
-                day_of_week="Wednesday",
+                day_of_week="wed",
                 start_time=datetime.time(9, 0),
                 end_time=datetime.time(10, 30),
-                room="Hall 101",
+                location="Hall 101",
             )
 
     for enrollment in StudentUnitEnrollment.objects.filter(section__isnull=True):
@@ -880,24 +880,24 @@ def timetable(request):
                 sec = UnitSection.objects.create(
                     unit=enrollment.unit,
                     section_code="Section A",
-                    instructor_name="Dr. Academic Advisor",
-                    room="Hall 101",
+                    lecturer="Dr. Academic Advisor",
+                    semester=enrollment.semester or profile.current_semester or "Fall",
                     active=True,
                 )
             if not sec.sessions.exists():
                 ClassSession.objects.create(
                     section=sec,
-                    day_of_week="Monday",
+                    day_of_week="mon",
                     start_time=datetime.time(9, 0),
                     end_time=datetime.time(10, 30),
-                    room="Hall 101",
+                    location="Hall 101",
                 )
                 ClassSession.objects.create(
                     section=sec,
-                    day_of_week="Wednesday",
+                    day_of_week="wed",
                     start_time=datetime.time(9, 0),
                     end_time=datetime.time(10, 30),
-                    room="Hall 101",
+                    location="Hall 101",
                 )
             enrollment.section = sec
             enrollment.save()
@@ -1148,8 +1148,8 @@ def enroll_unit(request):
             section = UnitSection.objects.create(
                 unit=unit,
                 section_code=f"Section {chr(65 + unit.sections.count())}",
-                instructor_name="Dr. Academic Advisor",
-                room="Hall 102",
+                lecturer="Dr. Academic Advisor",
+                semester=semester,
                 active=True,
             )
             ClassSession.objects.create(
@@ -1157,7 +1157,7 @@ def enroll_unit(request):
                 day_of_week=d1,
                 start_time=st,
                 end_time=et,
-                room="Hall 102",
+                location="Hall 102",
             )
             if d1 != d2:
                 ClassSession.objects.create(
@@ -1165,7 +1165,7 @@ def enroll_unit(request):
                     day_of_week=d2,
                     start_time=st,
                     end_time=et,
-                    room="Hall 102",
+                    location="Hall 102",
                 )
         else:
             section = active_sections.first()
