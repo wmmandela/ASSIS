@@ -156,9 +156,3 @@ ASSIS implements all seven Universal Design principles to guarantee full accessi
 - `Enter` / `Space`: Activate buttons and select tabs
 - `⌥ Option + 1-8` (macOS) / `Alt + 1-8`: Quick tab navigation across dashboard views
 - `Esc`: Close modals and popovers
-
----
-
-## License
-
-This project is developed for educational and institutional support research. All rights reserved.
